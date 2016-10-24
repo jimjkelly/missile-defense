@@ -12,9 +12,30 @@ h1 {
   font-size: 40px;
 }
 
-div.main {
+.page {
   height: 100%;
   display: flex;
-  justify-content: center;
-  align-items: center;
+
+  > div {
+    flex: 3 0 0;
+  }
+
+  > .controls {
+    flex: 1 0 0;
+    display: flex;
+
+    .layer-control {
+      flex: 1 0 0;
+
+      .layer-slider {
+        display: flex;
+        justify-content: space-between;
+        padding: .5em 1em;
+      }
+    }
+
+    .layer-button {
+      cursor: pointer;
+    }
+  }
 }

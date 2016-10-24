@@ -6,10 +6,16 @@ import { logger } from './utils';
 
 const baseState = {
 	uistate: {
+		controls: {
+			offensive: [],
+			defensive: [],
+		}
 	}
 }
 
+
 var reducerMap = {};
+
 
 var actionMap = {
 	FAILURE: (data) => {
@@ -17,6 +23,7 @@ var actionMap = {
 		callAction('TOGGLE_MODAL', { status: data.status, statusText: data.statusText, type: 'error' });
 	}
 };
+
 
 const store = createStore((state, action) => {
 	logger("previous state", state);
@@ -28,6 +35,7 @@ const store = createStore((state, action) => {
 
 	return computed_state;
 }, Object.assign({}, baseState));
+
 
 const callAction = (type, data) => {
 	var action = actionMap[type] ? actionMap[type](data) : undefined;
@@ -43,6 +51,7 @@ const callAction = (type, data) => {
 	store.dispatch(Object.assign({}, action));
 };
 
+
 const checkStatus = (response) => {
 	if (response.status >= 200 && response.status < 300) {
 		return response
@@ -52,6 +61,7 @@ const checkStatus = (response) => {
 		throw error
 	}
 };
+
 
 const createAsyncActions = ({types, url, actions, reducers, async_function }) => {
 	const [ requestType, successType, failureType ] = types;

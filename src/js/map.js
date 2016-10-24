@@ -28,13 +28,15 @@ class MapControl extends Component {
         const mapProps = {
             ...this.state.viewport,
             ...this.props,
-            width: Math.max(document.documentElement.clientWidth, window.innerWidth || 0),
+            width: Math.max(document.documentElement.clientWidth * 0.75, window.innerWidth * 0.75 || 0),
             height: Math.max(document.documentElement.clientHeight, window.innerHeight || 0),
             onChangeViewport: this._onChangeViewport,
-            mapboxApiAccessToken: "REPLACEME"
+            mapboxApiAccessToken: "pk.eyJ1IjoiamltamtlbGx5IiwiYSI6ImNpdWlrZ256MzAwMmwyb3BpdHE0YmpuczcifQ.vV2CupSreGlxnV4l9OwIUA"
         };
 
-        return <MapGL { ...mapProps } />
+        return <div className="map">
+            <MapGL { ...mapProps } />
+        </div>
     }
 }
 

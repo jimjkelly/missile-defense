@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
-import { MapControl } from './map';
+import { PageControl } from './ui';
 import { store } from './store';
 
 
@@ -9,14 +9,10 @@ const PageStateManager = connect(
 	state => {
 		const s = state || {};
 		return {
-
+			uistate: s.uistate
 		};
 	}
 );
-
-const PageControl = () => {
-	return <MapControl />
-};
 
 const Page = PageStateManager(PageControl);
 
