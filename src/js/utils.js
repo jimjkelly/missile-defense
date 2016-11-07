@@ -8,4 +8,12 @@ const logger = (message, object, error = false) => {
 	}
 }
 
-export { logger };
+function capitalize(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function p(path) {
+  return path.split('.');
+}
+
+export { logger, capitalize, p };

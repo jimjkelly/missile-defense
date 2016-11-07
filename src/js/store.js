@@ -1,17 +1,8 @@
 import _ from 'lodash';
 import fetch from 'whatwg-fetch';
+import { fromJS } from 'immutable';
 import { createStore } from 'redux';
 import { logger } from './utils';
-
-
-const baseState = {
-	uistate: {
-		controls: {
-			offensive: [],
-			defensive: [],
-		}
-	}
-}
 
 
 var reducerMap = {};
@@ -26,15 +17,22 @@ var actionMap = {
 
 
 const store = createStore((state, action) => {
-	logger("previous state", state);
+	logger("previous state", state.toJS());
 	logger("action", action);
 	
 	const computed_state = reducerMap[action.type] ? reducerMap[action.type](state, action) : state;
 
-	logger("next state", computed_state);
+	logger("next state", computed_state.toJS());
 
 	return computed_state;
-}, Object.assign({}, baseState));
+}, fromJS({
+	uistate: {
+		controls: {
+			offensive: [],
+			defensive: [],
+		}
+	}
+}));
 
 
 const callAction = (type, data) => {

@@ -9,7 +9,7 @@ const PageStateManager = connect(
 	state => {
 		const s = state || {};
 		return {
-			uistate: s.uistate
+			uistate: s.get('uistate')
 		};
 	}
 );

@@ -23,14 +23,21 @@ h1 {
   > .controls {
     flex: 1 0 0;
     display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 
-    .layer-control {
+    > .layers {
       flex: 1 0 0;
+      display: flex;
 
-      .layer-slider {
-        display: flex;
-        justify-content: space-between;
-        padding: .5em 1em;
+      .layer-control {
+        flex: 1 0 0;
+
+        .layer-slider {
+          display: flex;
+          justify-content: space-between;
+          padding: .5em 1em;
+        }
       }
     }
 
@@ -38,4 +45,8 @@ h1 {
       cursor: pointer;
     }
   }
+}
+
+.layer {
+  padding: 10px 10px;
 }
