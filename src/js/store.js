@@ -1,5 +1,3 @@
-import _ from 'lodash';
-import fetch from 'whatwg-fetch';
 import { fromJS } from 'immutable';
 import { createStore } from 'redux';
 import { logger } from './utils';
@@ -26,11 +24,15 @@ const store = createStore((state, action) => {
 
 	return computed_state;
 }, fromJS({
-	uistate: {
-		controls: {
-			offensive: [],
-			defensive: [],
-		}
+	target: {
+		latitude: 37.7577,
+        longitude: -122.4376,
+		radius: 5,
+		hardness: 0
+	},
+	layers: {
+		offensive: [],
+		defensive: []
 	}
 }));
 
@@ -50,61 +52,4 @@ const callAction = (type, data) => {
 };
 
 
-const checkStatus = (response) => {
-	if (response.status >= 200 && response.status < 300) {
-		return response
-	} else {
-		var error = new Error(response.statusText)
-		error.response = response
-		throw error
-	}
-};
-
-
-const createAsyncActions = ({types, url, actions, reducers, async_function }) => {
-	const [ requestType, successType, failureType ] = types;
-	const requestAction = actions ? actions[requestType] : undefined,
-		  successAction = actions ? actions[successType] : undefined,
-		  failureAction = actions ? actions[failureType] : undefined;
-
-	if (async_function === undefined) {
-		async_function = ajax;
-	}
-
-	actionMap[requestType] = data => requestAction ? requestAction(data) : undefined;
-	actionMap[successType] = data => successAction ? successAction(data) : undefined;
-	actionMap[failureType] = ({error, data}) => {
-		const action = failureAction ? failureAction(error, data) : undefined;
-
-		if (action === undefined) {
-			// Default to always log a failure,
-			// if nothing else has been done.
-			callAction('FAILURE', error);
-		}
-
-		return action;
-	};
-
-	Object.assign(reducerMap, reducers);
-
-	return payload => {
-		callAction(requestType);
-
-		fetch(
-			url,
-			{
-				method: 'post',
-	  			body: JSON.stringify(payload),
-	  			headers: {
-	    			'Accept': 'application/json',
-	    			'Content-Type': 'application/json'
-	  			}
-  			}
-		).then(checkStatus)
-		.then(response => response.json())
-		.then(data => callAction(successType, data))
-		.catch(error => callAction(failureType, {error, data: payload}));
-	};
-};
-
-export { reducerMap, actionMap, store, callAction, createAsyncActions };
+export { reducerMap, actionMap, store, callAction };

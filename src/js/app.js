@@ -9,7 +9,8 @@ const PageStateManager = connect(
 	state => {
 		const s = state || {};
 		return {
-			uistate: s.get('uistate')
+			layers: s.get('layers'),
+            target: s.get('target')
 		};
 	}
 );

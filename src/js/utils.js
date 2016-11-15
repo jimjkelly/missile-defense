@@ -1,19 +1,31 @@
+import {rgb} from 'd3-color';
 
-const logger = (message, object, error = false) => {
-	const args = object ? [`${ message }: `, object] : [`${ message }`],
-		  type = error ? 'error' : 'log';
 
-	if (console) {
-		console[type].apply(console, args)
-	}
+const alphaify = (color, opacity, brighter=0) => {
+    var c = rgb(color).brighter(brighter);
+    c.opacity = opacity;
+    return String(c);
 }
 
-function capitalize(string) {
+const logger = (message, object, error = false) => {
+    const args = object ? [`${ message }: `, object] : [`${ message }`],
+          type = error ? 'error' : 'log';
+
+    if (console) {
+        console[type].apply(console, args) // eslint-disable-line no-console
+    }
+}
+
+const capitalize = (string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-function p(path) {
-  return path.split('.');
+const p = (path) => {
+    return path.split('.');
 }
 
-export { logger, capitalize, p };
+const round = (num, places=2) => {
+    return parseFloat(Math.round(num * 100) / 100).toFixed(places);
+}
+
+export { alphaify, logger, capitalize, p, round };

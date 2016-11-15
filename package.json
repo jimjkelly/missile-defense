@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "description": "A web site for calculating missile defense probabilities.",
   "main": "src/js/index.js",
+  "maptoken": "pk.eyJ1IjoiamltamtlbGx5IiwiYSI6ImNpdWlndHlqdzAwNDUyenFsZm1reWlrdHYifQ.axdFe4nLRNLR2TYb_VlReg",
   "browserify": {
     "transform": [
       [
@@ -18,18 +19,36 @@
     ]
   },
   "eslintConfig": {
-    "extends": "eslint:recommended",
+    "extends": [
+      "eslint:recommended",
+      "plugin:react/recommended"
+    ],
     "parserOptions": {
       "ecmaVersion": 7,
-      "sourceType": "module"
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "jsx": true,
+        "experimentalObjectRestSpread": true
+      }
     },
+    "plugins": [
+      "react"
+    ],
     "env": {
       "node": true
     },
     "rules": {
-      "no-console": 0,
-      "no-unused-vars": 1
+      "react/prop-types": 0
+    },
+    "globals": {
+      "document": true
     }
+  },
+  "jest": {
+    "testPathDirs": [
+      "tests"
+    ],
+    "testRegex": ".*\\.js$"
   },
   "scripts": {
     "prepare": "mkdir -p dist/{js,css}",
@@ -54,7 +73,8 @@
   },
   "homepage": "https://github.com/jimjkelly/missile-defense#readme",
   "devDependencies": {
-    "babel-jest": "^16.0.0",
+    "babel-jest": "^17.0.2",
+    "babel-polyfill": "^6.16.0",
     "babel-preset-es2015": "^6.16.0",
     "babel-preset-react": "^6.16.0",
     "babel-preset-stage-2": "^6.17.0",
@@ -62,20 +82,23 @@
     "browserify": "^13.1.0",
     "eslint": "^3.8.1",
     "http-server": "^0.9.0",
-    "jest": "^16.0.2",
+    "jest": "^17.0.3",
     "less": "^2.7.1",
     "react-test-renderer": "^15.3.2",
     "uglify-js": "^2.7.3",
     "watch": "^1.0.1"
   },
   "dependencies": {
+    "d3-color": "^1.0.2",
+    "debounce": "^1.0.0",
+    "eslint-plugin-react": "^6.7.1",
     "immutable": "^3.8.1",
-    "lodash": "^4.16.4",
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
     "react-map-gl": "^1.7.0",
     "react-redux": "^4.4.5",
     "redux": "^3.6.0",
-    "whatwg-fetch": "^1.0.0"
+    "svg-transform": "^0.0.3",
+    "viewport-mercator-project": "^3.0.0-beta2"
   }
 }

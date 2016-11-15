@@ -1,50 +1,39 @@
-import React from 'react';
-import { logger } from './utils';
-
 
 const LR = (missileYield, hardness) => {
-	return 2.63 * 1852 * Math.cbrt(missileYield/1000) / Math.cbrt(hardness)
+    return 2.63 * 1852 * Math.cbrt(missileYield/1000) / Math.cbrt(hardness)
 }
 
 const SSPK = (lr, cep) => {
-	return 1 - .5^((lr/cep)^2);
+    return 1 - Math.pow(.5, Math.pow((lr/cep), 2));
 }
 
 const TKP = (sspk, reliability) => {
-	return sspk * reliability;
+    return sspk * reliability;
 }
 
-const DefensiveLayer = (tracking, sspk, interceptors ) => {
-	return tracking * (1-((1-sspk)^interceptors));
+const DefensiveLayer = (layer) => {
+    return layer.tracking * (1-(Math.pow((1-layer.sspk), layer.interceptors)));
 }
 
-const OffensiveLayer = (layer, defensivelayers) => {
-	var tkp;
-
-	// TODO: Hardness is hardcoded
-	if (layer.type === 'notional') {
-		tkp = TKP(layer.sspk, layer.reliability)
-	} else if (layer.type === 'ground-burst') {
-		tkp = TKP(SSPK(LR(layer.missileYield, '22'), layer.cep), layer.reliability);
-	} else {
-		logger('Unknown offensive layer type: ', layer.type);
-	}
-
-	return (1 - defensivelayers.reduce((p, c) => p * c, tkp)) ^ layer.number;
+const OffensiveLayer = (layer, hardness) => {
+    if (layer.type === 'notional') {
+        return TKP(layer.sspk, layer.reliability)
+    } else if (layer.type === 'ground-burst') {
+        return TKP(SSPK(LR(layer.yield, hardness), layer.cep), layer.reliability);
+    } else {
+        throw `Unknown offensive layer type: ${layer.type}`;
+    }
 }
 
-const Calculate = (offensive, defensive) => {
-	const defensiveLayers = defensive.length > 0 ? defensive.map(layer => DefensiveLayer(layer.tracking, layer.sspk, layer.interceptors)) : [],
-		  offensiveLayers = (offensive.length > 0 && defensive.length > 0) ? offensive.map(layer => OffensiveLayer(layer, defensiveLayers)) : null,
-		  overallProbability = offensiveLayers ? offensiveLayers.reduce((p, c) => p + c) : null;
-
-	return overallProbability;
+const PW = (tkp, defensivelayers) => {
+    return defensivelayers.reduce((p, c) => p * c, tkp);
 }
 
-const Calculations = ({ controls }) =>
-	<div className="results">
-		Probability: {Calculate(controls.get('offensive').toJS(), controls.get('defensive').toJS())}
-	</div>
+const P0 = (offensive, defensive, target) => {
+    const defensiveLayers = defensive.length > 0 ? defensive.map(layer => 1 - DefensiveLayer(layer)) : [],
+          offensiveLayers = offensive.length > 0 ? offensive.filter(l => l.type).map(layer => OffensiveLayer(layer, target.hardness)) : null;
 
+    return offensiveLayers ? offensiveLayers.reduce((p, c) => p * PW(c, defensiveLayers), 1) : null; 
+}
 
-export { Calculations };
+export { P0, OffensiveLayer, DefensiveLayer };
