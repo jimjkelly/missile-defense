@@ -10,6 +10,7 @@ dependencies:
   cache_directories:
     - "~/.yarn-cache"
   override:
+    - mkdir dist && mkdir dist/js && mkdir dist/css
     - npm run build
     - npm run minify
 test:
