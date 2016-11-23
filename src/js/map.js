@@ -1,3 +1,10 @@
+/*
+
+This file contains functionality related to the
+mapping.
+
+*/
+
 import MapGL from 'react-map-gl';
 import window from 'global/window';
 import pkg from '../../package.json';
@@ -8,6 +15,7 @@ import transform from 'svg-transform';
 import { alphaify } from './utils';
 
 
+// Some colors used that we can refer to
 const colors = {
     red: '#ff5a5f',
     blue: '#1fbad6',
@@ -15,6 +23,7 @@ const colors = {
 }
 
 
+// This provides the draggable circles
 class DraggableSVGOverlay extends Component {
     constructor(props) {
         super(props);
@@ -145,6 +154,7 @@ const MapLayer = ({ mapProps, range, color, brighter }) =>
     }} />
 
 
+// This is the map itself
 class MapControl extends Component {
     constructor(props) {
         super(props);
@@ -238,4 +248,5 @@ class MapControl extends Component {
     }
 }
 
+// This allows other parts of the application to access these functions
 export { MapControl, MapLayer }

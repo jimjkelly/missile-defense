@@ -1,22 +1,21 @@
+/*
+
+This file defines things related to generic UI functionality.
+These items are generally fairly dumb to the specifics of
+what we're trying to accomplish.
+
+*/
+
 import React from 'react';
 import { MapControl } from './map';
 import { P0 } from './calculations';
-import { OffensiveLayer, DefensiveLayer, Probability } from './layers';
-import { callAction, reducerMap } from './store';
+import { OffensiveLayer, DefensiveLayer, Target, Probability } from './layers';
+import { callAction } from './store';
 import { capitalize, p } from './utils';
 import { fromJS } from 'immutable';
 
 
-Object.assign(reducerMap, {
-    UPDATE_TARGET: (state, action) => {
-        return state.mergeIn(
-            p(`target`),
-            action.data
-        );
-    }
-});
-
-
+// This provides a ui widget that allows for editing a text field
 class EditableText extends React.Component {
     constructor(props) {
         super(props);
@@ -77,7 +76,7 @@ class EditableText extends React.Component {
     }
 }
 
-
+// This is the button a user clicks to add a new layer
 const LayerButton = ({ type, action, children }) =>
     <div className="layer-button" onClick={() =>
         callAction(
@@ -94,6 +93,7 @@ const LayerButton = ({ type, action, children }) =>
     </div>
 
 
+// Layer control with count of layers and button to add
 const LayerSlider = ({ type, numLayers }) =>
     <div className="layer-slider">
         {`${numLayers} ${capitalize(type)} ${numLayers === 1 ? "Layer" : "Layers"}`}
@@ -103,6 +103,7 @@ const LayerSlider = ({ type, numLayers }) =>
     </div>
 
 
+// Control to add layers as well as the layers themselves
 const LayerControl = ({ type, layers, Layer, target }) =>
     <div className={`layer-control ${type}`}>
         <LayerSlider type={type} numLayers={layers.size} />
@@ -112,6 +113,7 @@ const LayerControl = ({ type, layers, Layer, target }) =>
     </div>
 
 
+// Has the two types of layer controls
 const Controls = ({ layers, target }) =>
     <div className="layers">
         <LayerControl
@@ -128,48 +130,7 @@ const Controls = ({ layers, target }) =>
     </div>
 
 
-const Target = ({ target }) =>
-    <div className="target">
-        <label>Target Information:</label>
-        <div>
-            Latitude: <EditableText
-                text={target.get('latitude')}
-                action={(element) => callAction(
-                    'UPDATE_TARGET',
-                    { latitude: element.value }
-                )}
-            />
-        </div>
-        <div>
-            Longitude: <EditableText
-                text={target.get('longitude')}
-                action={(element) => callAction(
-                    'UPDATE_TARGET',
-                    { longitude: element.value }
-                )}
-            />
-        </div>
-        <div>
-            Radius: <EditableText
-                text={target.get('radius')}
-                action={(element) => callAction(
-                    'UPDATE_TARGET',
-                    { radius: element.value }
-                )}
-            />
-        </div>
-        <div>
-            Hardness: <EditableText
-                text={target.get('hardness')}
-                action={(element) => callAction(
-                    'UPDATE_TARGET',
-                    { hardness: element.value }
-                )}
-            />
-        </div>
-    </div>
-
-
+// Shows the resulting P(0)
 const Calculations = ({ layers, target }) =>
     <div className="results">
         { !isNaN(P0(layers.get('offensive').toJS(), layers.get('defensive').toJS(), target.toJS()))
@@ -179,6 +140,9 @@ const Calculations = ({ layers, target }) =>
     </div>
 
 
+// This is the entire application - the map, the layer
+// controls, the target information, and the resuting
+// calculations.
 const PageControl = ({ layers, target }) =>
     <div className="page">
         <MapControl layers={layers} target={target} />
@@ -190,4 +154,5 @@ const PageControl = ({ layers, target }) =>
     </div>
 
 
+// This allows other parts of the application to access these functions
 export { PageControl, EditableText };

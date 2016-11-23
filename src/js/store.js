@@ -1,11 +1,24 @@
+/*
+
+This provides functionality related to the Redux
+data store.
+
+*/
+
 import { fromJS } from 'immutable';
 import { createStore } from 'redux';
 import { logger } from './utils';
 
 
+// Reducers handle mutating action data into our
+// store. Other parts of the application will
+// add their own items to this.
 var reducerMap = {};
 
 
+// Actions handle deciding what data needs to be
+// sent to a reducer. Other parts of the application
+// will add thier own items to this.
 var actionMap = {
 	FAILURE: (data) => {
 		logger('ERROR', data.statusText, true);
@@ -14,6 +27,11 @@ var actionMap = {
 };
 
 
+// The store is the center of truth regarding data
+// in the application. The first argument here is
+// a function that is called each time we want to
+// mutate the state. The second is some initial
+// state we use to get the application going.
 const store = createStore((state, action) => {
 	logger("previous state", state.toJS());
 	logger("action", action);
@@ -37,6 +55,8 @@ const store = createStore((state, action) => {
 }));
 
 
+// The callAction function is a utility we can use to
+// call the action and reducers in one call
 const callAction = (type, data) => {
 	var action = actionMap[type] ? actionMap[type](data) : undefined;
 
@@ -51,5 +71,5 @@ const callAction = (type, data) => {
 	store.dispatch(Object.assign({}, action));
 };
 
-
+// This allows other parts of the application to access these functions
 export { reducerMap, actionMap, store, callAction };

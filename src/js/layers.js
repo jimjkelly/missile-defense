@@ -1,3 +1,11 @@
+/*
+
+This file contains mostly display components
+for specification of data for offensive and
+defensive layers.
+
+*/
+
 import React from 'react';
 import { callAction, reducerMap } from './store';
 import { OffensiveLayer as OffensiveCalc, DefensiveLayer as DefensiveCalc } from './calculations';
@@ -5,7 +13,16 @@ import { EditableText } from './ui';
 import { p, round } from './utils';
 
 
+// Here we add reducer functions to control
+// how layer and target data is added and
+// modified in the store.
 Object.assign(reducerMap, {
+    UPDATE_TARGET: (state, action) => {
+        return state.mergeIn(
+            p(`target`),
+            action.data
+        );
+    },
     UPDATE_LAYER: (state, action) => {
         return state.updateIn(
             p(`layers.${action.data.type}`),
@@ -31,6 +48,8 @@ Object.assign(reducerMap, {
     }
 });
 
+// A generic layer container, which shows an editable
+// name, a button to delete it, and its children.
 const Layer = ({ index, type, name, children }) =>
     <div className="layer">
         <EditableText
@@ -48,6 +67,7 @@ const Layer = ({ index, type, name, children }) =>
     </div>
 
 
+// A range field
 const Range = ({ index, range }) =>
     <div className="range">
         <label>
@@ -64,6 +84,7 @@ const Range = ({ index, range }) =>
     </div>
 
 
+// An SSPK field
 const SSPK = ({ index, type, sspk }) =>
     <div className="sspk">
         <label>
@@ -80,6 +101,7 @@ const SSPK = ({ index, type, sspk }) =>
     </div>
 
 
+// A field for the number of interceptors
 const Interceptors = ({ index, interceptors }) =>
     <div className="interceptors">
         <label>
@@ -95,6 +117,8 @@ const Interceptors = ({ index, interceptors }) =>
         </label>
     </div>
 
+
+// A field for tracking probability
 const TrackingProbability = ({ index, tracking }) =>
     <div className="tracking-probability">
         <label>
@@ -111,6 +135,7 @@ const TrackingProbability = ({ index, tracking }) =>
     </div>
 
 
+// A field for reliability
 const Reliability = ({ index, reliability }) =>
     <div className="reliability">
         <label>
@@ -126,6 +151,8 @@ const Reliability = ({ index, reliability }) =>
         </label>
     </div>
 
+
+// A field for the number of incoming missiles
 const NumberOfIncomingMissiles = ({ index, number }) =>
     <div className="number">
         <label>
@@ -141,6 +168,8 @@ const NumberOfIncomingMissiles = ({ index, number }) =>
         </label>
     </div>
 
+
+// A field for yield
 const Yield = ({ index, missileYield }) =>
     <div className="yield">
         <label>
@@ -157,6 +186,7 @@ const Yield = ({ index, missileYield }) =>
     </div>
 
 
+// A field for CEP
 const CEP = ({ index, cep }) =>
     <div className="cep">
         <label>
@@ -173,6 +203,8 @@ const CEP = ({ index, cep }) =>
     </div>
 
 
+
+// A series of fields for configuring an offensive layer as ground burst
 const GroundBurst = ({ index, layerData }) =>
     <div className="ground-burst">
         <Yield index={index} missileYield={layerData.get('yield')} />
@@ -182,6 +214,7 @@ const GroundBurst = ({ index, layerData }) =>
     </div>
 
 
+// A series of fields for configuring an offensive layer as notional
 const Notional = ({ index, layerData }) =>
     <div className="notional">
         <SSPK index={index} type="offensive" sspk={layerData.get('sspk')} />
@@ -190,12 +223,14 @@ const Notional = ({ index, layerData }) =>
     </div>
 
 
+// A generic probability display component
 const Probability = ({ a, b, value }) =>
     <span className="probability">
         P({a}{ b ? `, ${b}` : null}): {round(value)}
     </span>
 
 
+// A widget for selecting offensive type
 const OffensiveType = ({ index }) =>
     <div className="offensive-type">
         <select name="offensive-type" defaultValue="default" onChange={(e) => callAction('UPDATE_LAYER', {
@@ -210,6 +245,7 @@ const OffensiveType = ({ index }) =>
     </div>
 
 
+// An offensive layer widget
 const OffensiveLayer = ({ index, type, layerData, target }) =>
     <Layer index={index} type={type} name={layerData.get('name')} >
         <OffensiveType index={index} type={layerData.get('type')} />
@@ -230,6 +266,7 @@ const OffensiveLayer = ({ index, type, layerData, target }) =>
     </Layer>
 
 
+// A defensive layer widget
 const DefensiveLayer = ({ index, type, layerData }) =>
     <Layer index={index} type={type} name={layerData.get('name')} >
         <Range index={index} range={layerData.get('range')} />
@@ -243,4 +280,48 @@ const DefensiveLayer = ({ index, type, layerData }) =>
     </Layer>
 
 
-export { OffensiveLayer, DefensiveLayer, Probability };
+// Target configuraiton widget
+const Target = ({ target }) =>
+    <div className="target">
+        <label>Target Information:</label>
+        <div>
+            Latitude: <EditableText
+                text={target.get('latitude')}
+                action={(element) => callAction(
+                    'UPDATE_TARGET',
+                    { latitude: element.value }
+                )}
+            />
+        </div>
+        <div>
+            Longitude: <EditableText
+                text={target.get('longitude')}
+                action={(element) => callAction(
+                    'UPDATE_TARGET',
+                    { longitude: element.value }
+                )}
+            />
+        </div>
+        <div>
+            Radius: <EditableText
+                text={target.get('radius')}
+                action={(element) => callAction(
+                    'UPDATE_TARGET',
+                    { radius: element.value }
+                )}
+            />
+        </div>
+        <div>
+            Hardness: <EditableText
+                text={target.get('hardness')}
+                action={(element) => callAction(
+                    'UPDATE_TARGET',
+                    { hardness: element.value }
+                )}
+            />
+        </div>
+    </div>
+
+
+// This allows other parts of the application to access these functions
+export { OffensiveLayer, DefensiveLayer, Target, Probability };
