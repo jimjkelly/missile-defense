@@ -11,7 +11,7 @@ import { MapControl } from './map';
 import { P0 } from './calculations';
 import { OffensiveLayer, DefensiveLayer, Target, Probability } from './layers';
 import { callAction } from './store';
-import { capitalize, p } from './utils';
+import { capitalize } from './utils';
 import { fromJS } from 'immutable';
 
 
