@@ -28,6 +28,12 @@ class EditableText extends React.Component {
         }
     }
 
+    componentDidUpdate() {
+        if (this.state.editing) {
+            this.editInput.focus();
+        }
+    }
+
     toggle() {
         this.setState({editing: this.editable && !this.state.editing ? true : false});
     }
@@ -52,7 +58,7 @@ class EditableText extends React.Component {
                 required={this.props.required}
                 defaultValue={this.props.text}
                 className={this.classes}
-                ref="editInput"
+                ref={node => this.editInput = node}
             />
         } else if (this.state.editing) {
             element = <input
@@ -63,7 +69,7 @@ class EditableText extends React.Component {
                 required={this.props.required}
                 defaultValue={this.props.text}
                 className={this.classes}
-                ref="editInput"
+                ref={node => this.editInput = node}
             />
         } else {
             element = <span id={this.props.id} className={this.classes} onClick={this.toggle}>
