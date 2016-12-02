@@ -28,7 +28,7 @@ Returns:
     - lethal radius in kilometers
 */
 const LR = (missileYield, hardness) => {
-    return 2.63 * 1852 * Math.cbrt(missileYield/1000) / Math.cbrt(hardness)
+    return 2.62 * 1852 * Math.cbrt(missileYield/1000) / Math.cbrt(hardness)
 }
 
 /* Single Shot Probability of Kill
