@@ -18,12 +18,12 @@ test('tests ground burst offensive layer', () => {
     expect(calculations.OffensiveLayer(
         {
             type: 'ground-burst',
-            yield: 1000,
-            reliability: 0.9,
-            cep: 10
+            yield: 750,
+            reliability: 0.75,
+            cep: 900
         },
-        10
-    )).toBe(0.9);
+        200
+    )).toBe(0.2888312680363119);
 });
 
 test('tests defensive layer', () => {

@@ -71,7 +71,7 @@ const Layer = ({ index, type, name, children }) =>
 const Range = ({ index, range }) =>
     <div className="range">
         <label>
-            Range (km):
+            Range (m):
             <EditableText
                 text={range || 0}
                 action={element => callAction('UPDATE_LAYER', {
@@ -190,7 +190,7 @@ const Yield = ({ index, missileYield }) =>
 const CEP = ({ index, cep }) =>
     <div className="cep">
         <label>
-            CEP (km):
+            CEP (m):
             <EditableText
                 text={cep || 0}
                 action={element => callAction('UPDATE_LAYER', {
