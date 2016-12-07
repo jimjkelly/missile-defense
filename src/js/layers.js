@@ -303,16 +303,7 @@ const Target = ({ target }) =>
             />
         </div>
         <div>
-            Radius: <EditableText
-                text={target.get('radius')}
-                action={(element) => callAction(
-                    'UPDATE_TARGET',
-                    { radius: element.value }
-                )}
-            />
-        </div>
-        <div>
-            Hardness: <EditableText
+            Hardness (PSI): <EditableText
                 text={target.get('hardness')}
                 action={(element) => callAction(
                     'UPDATE_TARGET',

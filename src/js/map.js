@@ -109,7 +109,7 @@ class DraggableSVGOverlay extends Component {
 }
 
 
-const Target = ({ mapProps, radius, color }) => {
+const Target = ({ mapProps, color }) => {
     const mercator = ViewportMercator(mapProps),
           {project} = mercator,
           style = {
@@ -128,11 +128,6 @@ const Target = ({ mapProps, radius, color }) => {
                 style={{fill: alphaify(color, 0.9), stroke: alphaify(color, 0.9)}}
                 transform={ transform([{translate: project([mapProps.longitude, mapProps.latitude])}]) }
                 r={(.2 * Math.pow(2, mapProps.zoom) / Math.pow(2, 6))}
-            />
-            <circle
-                style={{fill: alphaify(color, 0.6), stroke: alphaify(color, 0.6)}}
-                transform={ transform([{translate: project([mapProps.longitude, mapProps.latitude])}]) }
-                r={(radius * Math.pow(2, mapProps.zoom) / Math.pow(2, 6))}
             />
         </g>
     </svg>

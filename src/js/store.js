@@ -45,8 +45,7 @@ const store = createStore((state, action) => {
 	target: {
 		latitude: 37.7577,
         longitude: -122.4376,
-		radius: 5,
-		hardness: 0
+		hardness: 100
 	},
 	layers: {
 		offensive: [],
