@@ -51,13 +51,13 @@
     "testRegex": ".*\\.js$"
   },
   "scripts": {
-    "prepare": "mkdir -p dist/{js,css}",
-    "static": "cp -R src/static/* dist/",
+    "prepare": "shx mkdir -p dist/js dist/css",
+    "static": "shx cp -R src/static/* dist/",
     "css": "lessc src/css/main.less > dist/css/main.css",
     "js": "browserify -d -e src/js/app.js -o dist/js/bundle.js",
     "minify": "uglifyjs -o dist/js/bundle.js dist/js/bundle.js",
     "build": "npm run prepare && npm run static && npm run css && npm run js",
-    "clean": "rm -rf dist",
+    "clean": "shx rm -rf dist",
     "dev": "npm run prepare && watch \"npm run static\" src/static & watch \"npm run css\" src/css & watch \"npm run js\" src/js & http-server ./dist -p 9090",
     "lint": "eslint src",
     "test": "jest"
@@ -85,6 +85,7 @@
     "jest": "^17.0.3",
     "less": "^2.7.1",
     "react-test-renderer": "^15.3.2",
+    "shx": "^0.2.1",
     "uglify-js": "^2.7.3",
     "watch": "^1.0.1"
   },
