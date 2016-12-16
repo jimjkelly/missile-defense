@@ -8,10 +8,12 @@ what we're trying to accomplish.
 
 import React from 'react';
 import Popover from 'react-popover';
+import window from 'global/window';
+import { btoa } from 'global';
 import { MapControl } from './map';
 import { P0 } from './calculations';
 import { OffensiveLayer, DefensiveLayer, Target, Probability } from './layers';
-import { callAction } from './store';
+import { callAction, store } from './store';
 import { capitalize } from './utils';
 import { fromJS } from 'immutable';
 
@@ -114,6 +116,41 @@ class FormInfo extends React.Component {
     }
 }
 
+
+// Button to Create a Shareable Link to a Calculation
+class ShareLink extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.link = this.link.bind(this);
+        this.toggle = this.toggle.bind(this);
+
+        this.state = {
+            show: false
+        }
+    }
+
+    toggle() {
+        this.setState({show: this.state.show ? false : true });
+    }
+
+    link() {
+        const data = btoa(JSON.stringify(store.getState()));
+
+        return <div>
+            {`${window.location.protocol}//${window.location.host}/?link=${data}`}
+        </div>
+    }
+
+    render() {
+        return <div className="share-link">
+            <Popover body={this.link()} isOpen={this.state.show} onOuterAction={this.toggle}>
+                <i className="fa fa-2x fa-link" onClick={this.toggle}></i>
+            </Popover>
+        </div>
+    }
+}
+
 // This is the button a user clicks to add a new layer
 const LayerButton = ({ type, action, children }) =>
     <div className="layer-button" onClick={() =>
@@ -186,8 +223,15 @@ const PageControl = ({ layers, target }) =>
         <MapControl layers={layers} target={target} />
         <div className="data-display">
             <Controls layers={layers} target={target} />
-            <Target target={target} />
-            <Calculations layers={layers} target={target} />
+            <div className="bottom-controls">
+                <div className="left">
+                    <Target target={target} />
+                    <Calculations layers={layers} target={target} />
+                </div>
+                <div className="right">
+                    <ShareLink />
+                </div>
+            </div>
         </div>
     </div>
 

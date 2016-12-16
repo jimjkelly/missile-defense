@@ -5,9 +5,10 @@ data store.
 
 */
 
+import { atob } from 'global';
 import { fromJS } from 'immutable';
 import { createStore } from 'redux';
-import { logger } from './utils';
+import { logger, urlParams } from './utils';
 
 
 // Reducers handle mutating action data into our
@@ -41,17 +42,21 @@ const store = createStore((state, action) => {
 	logger("next state", computed_state.toJS());
 
 	return computed_state;
-}, fromJS({
-	target: {
-		latitude: 37.7577,
-        longitude: -122.4376,
-		hardness: 100
-	},
-	layers: {
-		offensive: [],
-		defensive: []
+}, fromJS(
+	'link' in urlParams
+	? JSON.parse(atob(urlParams.link))
+	: {
+		target: {
+			latitude: 37.7577,
+			longitude: -122.4376,
+			hardness: 100
+		},
+		layers: {
+			offensive: [],
+			defensive: []
+		}
 	}
-}));
+));
 
 
 // The callAction function is a utility we can use to

@@ -48,6 +48,24 @@ h1 {
   }
 }
 
+.share-link {
+  align-self: flex-end;
+  cursor: pointer;
+}
+
 .editable-input.invalid {
   border:1px solid #f00;
+}
+
+.bottom-controls {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  .right {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    cursor: pointer;
+  }
 }
