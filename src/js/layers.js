@@ -9,7 +9,7 @@ defensive layers.
 import React from 'react';
 import { callAction, reducerMap } from './store';
 import { OffensiveLayer as OffensiveCalc, DefensiveLayer as DefensiveCalc } from './calculations';
-import { EditableText } from './ui';
+import { EditableText, FormInfo } from './ui';
 import { p, round } from './utils';
 
 
@@ -79,8 +79,17 @@ const Range = ({ index, range }) =>
                     type: 'defensive',
                     layer: { range: element.value }
                 })}
+                validate={e => (0 <= e.value && e.value == parseInt(e.value, 10))}
             />
         </label>
+        <FormInfo>
+            <div>
+                Range
+            </div>
+            <div>
+                Must be an integer greater than or equal to 1.
+            </div>
+        </FormInfo>
     </div>
 
 
@@ -96,8 +105,18 @@ const SSPK = ({ index, type, sspk }) =>
                     type,
                     layer: { sspk: element.value }
                 })}
+                validate={e => (0 <= e.value && e.value <= 1)}
             />
         </label>
+        <FormInfo>
+            <div>
+                Single Shot Probability of Kill<br />
+                for one interceptor at Layer L.
+            </div>
+            <div>
+                Must be a value between 0 and 1, inclusive.
+            </div>
+        </FormInfo>
     </div>
 
 
@@ -113,8 +132,17 @@ const Interceptors = ({ index, interceptors }) =>
                     type: 'defensive',
                     layer: { interceptors: element.value }
                 })}
+                validate={e => (0 <= e.value && e.value == parseInt(e.value, 10))}
             />
         </label>
+        <FormInfo>
+            <div>
+                Number of Interceptors in Layer
+            </div>
+            <div>
+                Must be an integer greater than or equal to 1.
+            </div>
+        </FormInfo>
     </div>
 
 
@@ -130,8 +158,17 @@ const TrackingProbability = ({ index, tracking }) =>
                     type: 'defensive',
                     layer: { tracking: element.value }
                 })}
+                validate={e => (0 <= e.value && e.value <= 1)}
             />
         </label>
+        <FormInfo>
+            <div>
+                Probability of No Common Mode Failure
+            </div>
+            <div>
+                Must be a value between 0 and 1, inclusive.
+            </div>
+        </FormInfo>
     </div>
 
 
@@ -147,8 +184,17 @@ const Reliability = ({ index, reliability }) =>
                     type: 'offensive',
                     layer: { reliability: element.value }
                 })}
+                validate={e => (0 <= e.value && e.value <= 1)}
             />
         </label>
+        <FormInfo>
+            <div>
+                Reliability of Attacking Warhead
+            </div>
+            <div>
+                Must be a value between 0 and 1, inclusive.
+            </div>
+        </FormInfo>
     </div>
 
 
@@ -164,8 +210,17 @@ const NumberOfIncomingMissiles = ({ index, number }) =>
                     type: 'offensive',
                     layer: { number: element.value }
                 })}
+                validate={e => (0 <= e.value && e.value == parseInt(e.value, 10))}
             />
         </label>
+        <FormInfo>
+            <div>
+                Number of Incoming Missiles
+            </div>
+            <div>
+                Must be an integer greater than or equal to 1.
+            </div>
+        </FormInfo>
     </div>
 
 
@@ -181,8 +236,17 @@ const Yield = ({ index, missileYield }) =>
                     type: 'offensive',
                     layer: { yield: element.value }
                 })}
+                validate={e => (0 <= e.value && e.value == parseInt(e.value, 10))}
             />
         </label>
+        <FormInfo>
+            <div>
+                Yield of Attacking Warhead in Kilotons
+            </div>
+            <div>
+                Must be an integer greater than or equal to 1.
+            </div>
+        </FormInfo>
     </div>
 
 
@@ -198,8 +262,21 @@ const CEP = ({ index, cep }) =>
                     type: 'offensive',
                     layer: { cep: element.value }
                 })}
+                validate={e => (0 <= e.value && e.value == parseInt(e.value, 10))}
             />
         </label>
+        <FormInfo>
+            <div>
+                Circular Error Probable (in meters)
+            </div>
+            <div>
+                The radius within which an attacking warhead<br />
+                has a 50% chance of landing.
+            </div>
+            <div>
+                Must be an integer greater than or equal to 1.
+            </div>
+        </FormInfo>
     </div>
 
 
@@ -289,8 +366,9 @@ const Target = ({ target }) =>
                 text={target.get('latitude')}
                 action={(element) => callAction(
                     'UPDATE_TARGET',
-                    { latitude: element.value }
+                    { latitude: Number(element.value) }
                 )}
+                validate={e => (-90 <= e.value && e.value <= 90)}
             />
         </div>
         <div>
@@ -298,8 +376,9 @@ const Target = ({ target }) =>
                 text={target.get('longitude')}
                 action={(element) => callAction(
                     'UPDATE_TARGET',
-                    { longitude: element.value }
+                    { longitude: Number(element.value) }
                 )}
+                validate={e => (-180 <= e.value && e.value <= 180)}
             />
         </div>
         <div>
@@ -309,7 +388,16 @@ const Target = ({ target }) =>
                     'UPDATE_TARGET',
                     { hardness: element.value }
                 )}
+                validate={e => (0 <= e.value && e.value == parseInt(e.value, 10))}
             />
+            <FormInfo>
+                <div>
+                    Hardness of Buildings in Target Area in PSI
+                </div>
+                <div>
+                    Must be an integer greater than or equal to 1.
+                </div>
+            </FormInfo>
         </div>
     </div>
 

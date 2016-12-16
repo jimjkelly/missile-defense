@@ -7,6 +7,7 @@ what we're trying to accomplish.
 */
 
 import React from 'react';
+import Popover from 'react-popover';
 import { MapControl } from './map';
 import { P0 } from './calculations';
 import { OffensiveLayer, DefensiveLayer, Target, Probability } from './layers';
@@ -20,11 +21,13 @@ class EditableText extends React.Component {
     constructor(props) {
         super(props);
         this.classes = this.props.className ? this.props.className + ' editable-input' : 'editable-input';
+        this.validate = this.props.validate ? this.props.validate.bind(this) : null;
         this.editable = props.editable ? props.editable : true;
         this.handleInput = this.handleInput.bind(this);
         this.toggle = this.toggle.bind(this);
         this.state = {
-            editing: false
+            editing: false,
+            valid: true
         }
     }
 
@@ -39,16 +42,24 @@ class EditableText extends React.Component {
     }
 
     handleInput(e) {
+        var valid = this.validate ? this.validate(e.currentTarget) : this.state.valid;
+
         if (e.key === 'Enter') {
-            this.props.action(e.currentTarget);
-            this.toggle();
+            if (valid) {
+                this.props.action(e.currentTarget);
+                this.toggle();
+            }
         } else if (e.key === 'Escape') {
             this.toggle();
+        }
+
+        if (valid !== this.state.valid) {
+            this.setState({ valid });
         }
     }
 
     render() {
-        var element;
+        var element, classes = this.state.valid ? this.classes : this.classes + ' invalid';
 
         if (this.state.editing && this.props.element === 'textarea') {
             element = <textarea
@@ -57,7 +68,7 @@ class EditableText extends React.Component {
                 placeholder={this.props.placeholder}
                 required={this.props.required}
                 defaultValue={this.props.text}
-                className={this.classes}
+                className={classes}
                 ref={node => this.editInput = node}
             />
         } else if (this.state.editing) {
@@ -68,17 +79,38 @@ class EditableText extends React.Component {
                 placeholder={this.props.placeholder}
                 required={this.props.required}
                 defaultValue={this.props.text}
-                className={this.classes}
+                className={classes}
                 ref={node => this.editInput = node}
             />
         } else {
-            element = <span id={this.props.id} className={this.classes} onClick={this.toggle}>
+            element = <span id={this.props.id} className={classes} onClick={this.toggle}>
                 {this.props.text} { this.editable ? <i className="fa fa-pencil"></i> : null }
             </span>
         }
 
         return element;
 
+    }
+}
+
+class FormInfo extends React.Component {
+    constructor(props) {
+        super(props);
+        this.toggle = this.toggle.bind(this);
+        this.preferPlace = this.props.preferPlace || "above";
+        this.state = {
+            show: false
+        }
+    }
+
+    toggle() {
+        this.setState({show: this.state.show ? false : true });
+    }
+
+    render() {
+        return <Popover body={this.props.children} preferPlace={this.preferPlace} isOpen={this.state.show} onOuterAction={this.toggle}>
+                <i className="fa fa-question-circle" onClick={this.toggle}></i>
+        </Popover>
     }
 }
 
@@ -161,4 +193,4 @@ const PageControl = ({ layers, target }) =>
 
 
 // This allows other parts of the application to access these functions
-export { PageControl, EditableText };
+export { PageControl, EditableText, FormInfo };
