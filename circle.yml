@@ -21,4 +21,4 @@ deployment:
   production:
     branch: master
     commands:
-        - aws s3 sync dist s3://missile-defense/ --region us-west-2
+        - aws s3 sync dist s3://missile.exchange/
