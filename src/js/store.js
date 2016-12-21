@@ -46,6 +46,7 @@ const store = createStore((state, action) => {
 	'link' in urlParams
 	? JSON.parse(atob(urlParams.link))
 	: {
+		modelIndex: "0",
 		target: {
 			latitude: 37.7577,
 			longitude: -122.4376,

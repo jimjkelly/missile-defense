@@ -13,9 +13,17 @@ import { btoa } from 'global';
 import { MapControl } from './map';
 import { P0 } from './calculations';
 import { OffensiveLayer, DefensiveLayer, Target, Probability } from './layers';
-import { callAction, store } from './store';
-import { capitalize } from './utils';
+import { callAction, reducerMap, store } from './store';
+import { p, capitalize } from './utils';
 import { fromJS } from 'immutable';
+
+
+Object.assign(reducerMap, {
+    UPDATE_MODEL_TYPE: (state, action) => state.mergeIn(
+        p('modelIndex'),
+        action.data
+    )
+});
 
 
 // This provides a ui widget that allows for editing a text field
@@ -116,7 +124,6 @@ class FormInfo extends React.Component {
     }
 }
 
-
 // Button to Create a Shareable Link to a Calculation
 class ShareLink extends React.Component {
     constructor(props) {
@@ -188,6 +195,26 @@ const LayerControl = ({ type, layers, Layer, target }) =>
     </div>
 
 
+// Select the model type
+const ModelSelect = ({ models, selected }) =>
+    models.length > 1 ? <div className="model-select">
+        <select name="model-select" value={selected} onChange={(e) => callAction('UPDATE_MODEL_TYPE', e.currentTarget.value)}>
+            {models.map((model, index) =>
+                <option key={index} value={index}>
+                    {model.name}
+                </option>
+            )}
+        </select>
+        {models[selected].description
+            ? <div className="model-description">
+                Model Description: {models[selected].description}
+            </div>
+            : null
+        }
+    </div>
+    : null;
+
+
 // Has the two types of layer controls
 const Controls = ({ layers, target }) =>
     <div className="layers">
@@ -206,10 +233,10 @@ const Controls = ({ layers, target }) =>
 
 
 // Shows the resulting P(0)
-const Calculations = ({ layers, target }) =>
+const Calculations = ({ layers, target, model }) =>
     <div className="results">
-        { !isNaN(P0(layers.get('offensive').toJS(), layers.get('defensive').toJS(), target.toJS()))
-            ? <Probability a="0" value={P0(layers.get('offensive').toJS(), layers.get('defensive').toJS(), target.toJS())} />
+        { !isNaN(model(layers.get('offensive').toJS(), layers.get('defensive').toJS(), target.toJS()))
+            ? <Probability a="0" value={model(layers.get('offensive').toJS(), layers.get('defensive').toJS(), target.toJS())} />
             : "P(0): 0.0"
         }
     </div>
@@ -218,7 +245,7 @@ const Calculations = ({ layers, target }) =>
 // This is the entire application - the map, the layer
 // controls, the target information, and the resuting
 // calculations.
-const PageControl = ({ layers, target }) =>
+const PageControl = ({ layers, target, modelIndex }) =>
     <div className="page">
         <MapControl layers={layers} target={target} />
         <div className="data-display">
@@ -226,7 +253,8 @@ const PageControl = ({ layers, target }) =>
             <div className="bottom-controls">
                 <div className="left">
                     <Target target={target} />
-                    <Calculations layers={layers} target={target} />
+                    <ModelSelect models={P0} selected={modelIndex} />
+                    <Calculations layers={layers} target={target} model={P0[modelIndex].model} />
                 </div>
                 <div className="right">
                     <ShareLink />

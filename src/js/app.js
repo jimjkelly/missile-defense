@@ -20,6 +20,7 @@ const PageStateManager = connect(
 	state => {
 		const s = state || {};
 		return {
+            modelIndex: s.get('modelIndex'),
 			layers: s.get('layers'),
             target: s.get('target')
 		};
