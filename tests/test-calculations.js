@@ -41,7 +41,7 @@ test('tests defensive layer', () => {
 test('test p0 with notional offense', () => {
     const calculations = require('../src/js/calculations.js');
 
-    expect(calculations.P0(
+    expect(calculations.P0[0].model(
         [
             {
                 number: 2,
@@ -67,7 +67,7 @@ test('test p0 with notional offense', () => {
 test('test p0 with ground burst offense', () => {
     const calculations = require('../src/js/calculations.js');
 
-    expect(calculations.P0(
+    expect(calculations.P0[0].model(
         [
             {
                 number: 2,
