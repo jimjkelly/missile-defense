@@ -23,6 +23,16 @@ const colors = {
 }
 
 
+// Calculate a radius given meters and zoom level
+const radiusAtZoom = (meters, zoom) => {
+    // 17 here is a constant that is supposed to
+    // correspond to the initial zoom level, but it
+    // doesn't appear to, since that is set to 10.
+    // https://github.com/uber/react-map-gl/pull/10
+    return (meters * Math.pow(2, zoom - 17));
+}
+
+
 // This provides the draggable circles
 class DraggableSVGOverlay extends Component {
     constructor(props) {
@@ -127,7 +137,7 @@ const Target = ({ mapProps, color }) => {
             <circle
                 style={{fill: alphaify(color, 0.9), stroke: alphaify(color, 0.9)}}
                 transform={ transform([{translate: project([mapProps.longitude, mapProps.latitude])}]) }
-                r={(.2 * Math.pow(2, mapProps.zoom) / Math.pow(2, 6))}
+                r="6"
             />
         </g>
     </svg>
@@ -143,7 +153,7 @@ const MapLayer = ({ mapProps, range, color, brighter }) =>
             <circle
                 style={ {fill: alphaify(color, 0.6, brighter), stroke: alphaify(color, 0.6, brighter)} }
                 transform={ transform([{translate: opt.project([opt.longitude, opt.latitude])}]) }
-                r={((range ? range : 1) * Math.pow(2, mapProps.zoom) / Math.pow(2, 6))}
+                r={radiusAtZoom(range ? range : 1, mapProps.zoom)}
             />
         </g>
     }} />
