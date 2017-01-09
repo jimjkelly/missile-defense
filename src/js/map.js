@@ -227,11 +227,6 @@ class MapControl extends Component {
 
         return <div className="map">
             <MapGL { ...mapProps } onChangeViewport={ this._onChangeViewport }>
-                <Target
-                    mapProps={mapProps}
-                    radius={this.props.target.get('radius')}
-                    color={colors.green}
-                />
                 { this.props.layers.toJS().offensive.filter(l => l.type).map((layer, i) =>
                     <MapLayer
                         key={i}
