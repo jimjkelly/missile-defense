@@ -237,7 +237,7 @@ class MapControl extends Component {
                         key={i}
                         mapProps={mapProps}
                         color={colors.red}
-                        range={layer.cep}
+                        range={layer.range}
                     />
                 )}
                 { this.props.layers.toJS().defensive.map((layer, i) =>

@@ -68,7 +68,7 @@ const Layer = ({ index, type, name, children }) =>
 
 
 // A range field
-const Range = ({ index, range }) =>
+const Range = ({ index, type, range }) =>
     <div className="range">
         <label>
             Range (m):
@@ -76,7 +76,7 @@ const Range = ({ index, range }) =>
                 text={range || 0}
                 action={element => callAction('UPDATE_LAYER', {
                     index,
-                    type: 'defensive',
+                    type,
                     layer: { range: element.value }
                 })}
                 validate={e => (0 <= e.value && e.value == parseInt(e.value, 10))}
@@ -284,6 +284,7 @@ const CEP = ({ index, cep }) =>
 // A series of fields for configuring an offensive layer as ground burst
 const GroundBurst = ({ index, layerData }) =>
     <div className="ground-burst">
+        <Range index={index} type="offensive" range={layerData.get('range')} />
         <Yield index={index} missileYield={layerData.get('yield')} />
         <Reliability index={index} reliability={layerData.get('reliability')} />
         <CEP index={index} cep={layerData.get('cep')} />
@@ -294,6 +295,7 @@ const GroundBurst = ({ index, layerData }) =>
 // A series of fields for configuring an offensive layer as notional
 const Notional = ({ index, layerData }) =>
     <div className="notional">
+        <Range index={index} type="offensive" range={layerData.get('range')} />
         <SSPK index={index} type="offensive" sspk={layerData.get('sspk')} />
         <Reliability index={index} reliability={layerData.get('reliability')} />
         <NumberOfIncomingMissiles index={index} number={layerData.get('number')} />
@@ -346,7 +348,7 @@ const OffensiveLayer = ({ index, type, layerData, target }) =>
 // A defensive layer widget
 const DefensiveLayer = ({ index, type, layerData }) =>
     <Layer index={index} type={type} name={layerData.get('name')} >
-        <Range index={index} range={layerData.get('range')} />
+        <Range index={index} type="defensive" range={layerData.get('range')} />
         <SSPK index={index} type="defensive" sspk={layerData.get('sspk')} />
         <Interceptors index={index} interceptors={layerData.get('interceptors')} />
         <TrackingProbability index={index} tracking={layerData.get('tracking')} />
