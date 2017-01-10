@@ -152,7 +152,7 @@ Returns:
     - Probability of warhead succeeding
 */
 const PW = (tkp, defensivelayers) => {
-    return defensivelayers.reduce((p, c) => p * (1 - c), tkp);
+    return defensivelayers.reduce((p, c) => p * (1 - c), (1-tkp));
 }
 
 
