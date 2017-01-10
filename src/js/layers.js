@@ -10,6 +10,7 @@ import React from 'react';
 import { callAction, reducerMap } from './store';
 import { OffensiveLayer as OffensiveCalc, DefensiveLayer as DefensiveCalc } from './calculations';
 import { EditableText, FormInfo } from './ui';
+import { dashLayer, colors } from './map';
 import { p, round } from './utils';
 
 
@@ -63,6 +64,9 @@ const Layer = ({ index, type, name, children }) =>
         <i className="layer-button fa fa-minus" onClick={
             () => callAction('REMOVE_LAYER', { index, type })
         }></i>
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" style={{height: "15px", marginLeft: "-10px", width: "100%"}}>
+            <line style={ {strokeDasharray: dashLayer(index), fill: colors[type], stroke: colors[type]}} x1="10" y1="10" x2="190" y2="10" />
+        </svg>
         {children}
     </div>
 

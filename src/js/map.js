@@ -12,14 +12,19 @@ import { callAction } from './store';
 import React, { Component } from 'react';
 import ViewportMercator from 'viewport-mercator-project';
 import transform from 'svg-transform';
+import { OffensiveLayer, DefensiveLayer } from './calculations';
 import { alphaify } from './utils';
 
 
 // Some colors used that we can refer to
 const colors = {
-    red: '#ff5a5f',
-    blue: '#1fbad6',
-    green: '#00a699'
+    offensive: '#ff5a5f',
+    defensive: '#1fbad6'
+}
+
+
+const colorAtProbability = (color, p) => {
+    return alphaify(color, 0.6, (-(4*p)+2));
 }
 
 
@@ -30,6 +35,11 @@ const radiusAtZoom = (meters, zoom) => {
     // doesn't appear to, since that is set to 10.
     // https://github.com/uber/react-map-gl/pull/10
     return (meters * Math.pow(2, zoom - 17));
+}
+
+
+const dashLayer = index => {
+    return [Math.pow(2, index+1), Math.pow(2, index)+1];
 }
 
 
@@ -119,44 +129,49 @@ class DraggableSVGOverlay extends Component {
 }
 
 
-const Target = ({ mapProps, color }) => {
-    const mercator = ViewportMercator(mapProps),
-          {project} = mercator,
-          style = {
-            pointerEvents: 'none',
-            position: 'absolute',
-            left: 0,
-            top: 0,
-          };
-
-    return <svg style={style} width={mapProps.width} height={mapProps.height}>
-        <g style={{
-            pointerEvents: 'all',
-            cursor: 'pointer'
-        }}>
-            <circle
-                style={{fill: alphaify(color, 0.9), stroke: alphaify(color, 0.9)}}
-                transform={ transform([{translate: project([mapProps.longitude, mapProps.latitude])}]) }
-                r="6"
-            />
-        </g>
-    </svg>
-}
-
-
-const MapLayer = ({ mapProps, range, color, brighter }) =>
+const MapLayer = ({ index, mapProps, range, color, probability }) =>
     <DraggableSVGOverlay {...mapProps} redraw={opt => {
+        const radius = radiusAtZoom(range ? range : 1, mapProps.zoom),
+              fillColor = colorAtProbability(color, probability || 0),
+              strokeWidth = 5,
+              strokeSpacing = 4;
+
         return <g style={{
             pointerEvents: 'all',
             cursor: 'pointer'
         }}>
             <circle
-                style={ {fill: alphaify(color, 0.6, brighter), stroke: alphaify(color, 0.6, brighter)} }
+                style={ {fill: fillColor, stroke: fillColor} }
                 transform={ transform([{translate: opt.project([opt.longitude, opt.latitude])}]) }
-                r={radiusAtZoom(range ? range : 1, mapProps.zoom)}
+                r={radius}
+            />
+            <circle
+                style={ {strokeWidth, strokeDasharray: dashLayer(index), fill: 'none', stroke: fillColor}}
+                transform={ transform([{translate: opt.project([opt.longitude, opt.latitude])}]) }
+                r={(
+                    ((2*radius) + (2*strokeWidth) + strokeSpacing)/2
+                )}
             />
         </g>
     }} />
+
+
+const LayerColorLegend = ({ colors }) =>
+    <svg style={{ pointerEvents: 'none', cursor: 'none' }} width="160" height="60" version="1.1" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            {Object.keys(colors).map(type =>
+                <linearGradient key={type} id={type}>
+                    <stop className="stop1" offset="0%" stopColor={colorAtProbability(colors[type], 0)} />
+                    <stop className="stop2" offset="100%" stopColor={colorAtProbability(colors[type], 1)} />
+                </linearGradient>
+            )}
+        </defs>
+        <text x="5" y="20">0%</text>
+        <text x="105" y ="20">100%</text>
+        {Object.keys(colors).map((type, i) =>
+            <rect key={type} x="10" y={((i+1)*15) + 10} width="120" height="10" fill={`url(#${type})`} />
+        )}
+    </svg>
 
 
 // This is the map itself
@@ -227,20 +242,25 @@ class MapControl extends Component {
 
         return <div className="map">
             <MapGL { ...mapProps } onChangeViewport={ this._onChangeViewport }>
+                <LayerColorLegend colors={colors} />
                 { this.props.layers.toJS().offensive.filter(l => l.type).map((layer, i) =>
                     <MapLayer
                         key={i}
+                        index={i}
                         mapProps={mapProps}
-                        color={colors.red}
+                        color={colors.offensive}
                         range={layer.range}
+                        probability={OffensiveLayer(layer, this.props.target.get('hardness')) || undefined}
                     />
                 )}
                 { this.props.layers.toJS().defensive.map((layer, i) =>
                     <MapLayer
                         key={i}
+                        index={i}
                         mapProps={mapProps}
                         range={layer.range}
-                        color={colors.blue}
+                        color={colors.defensive}
+                        probability={DefensiveLayer(layer) || undefined}
                     />
                 )}
             </MapGL>
@@ -249,4 +269,4 @@ class MapControl extends Component {
 }
 
 // This allows other parts of the application to access these functions
-export { MapControl, MapLayer }
+export { MapControl, MapLayer, dashLayer, colors }
