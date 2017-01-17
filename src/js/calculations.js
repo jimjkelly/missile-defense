@@ -258,10 +258,10 @@ const P0 = [
             const defensiveLayers = defensive.length > 0 ? defensive.map(layer => DefensiveLayer(layer)) : [],
                   offensiveLayers = offensive.length > 0 ? offensive.filter(l => l.type).map(layer => OffensiveLayer(layer, target.hardness)) : null;
 
-            return offensiveLayers ? offensiveLayers.reduce((p, c) => p * PW(c, defensiveLayers), 1) : null;
+            return offensiveLayers ? offensiveLayers.reduce((p, c) => p * (1 - PW(c, defensiveLayers)), 1) : null;
         }
     }
 ]
 
 // This allows other parts of the application to access these functions
-export { P0, OffensiveLayer, DefensiveLayer };
+export { P0, PW, OffensiveLayer, DefensiveLayer, SSPK, LR };
