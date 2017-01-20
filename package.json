@@ -101,6 +101,7 @@
     "react-redux": "^5.0.1",
     "redux": "^3.6.0",
     "svg-transform": "^0.0.3",
+    "victory": "^0.15.0",
     "viewport-mercator-project": "^3.0.0-beta2"
   }
 }

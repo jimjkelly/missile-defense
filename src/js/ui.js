@@ -10,11 +10,12 @@ import React from 'react';
 import Popover from 'react-popover';
 import window from 'global/window';
 import { btoa } from 'global';
-import { MapControl } from './map';
+import { MapControl, colors } from './map';
 import { P0 } from './calculations';
 import { OffensiveLayer, DefensiveLayer, Target, Probability } from './layers';
 import { callAction, reducerMap, store } from './store';
 import { p, capitalize } from './utils';
+import { VictoryArea, VictoryChart, VictoryTheme } from 'victory';
 import { fromJS } from 'immutable';
 
 
@@ -242,6 +243,39 @@ const Calculations = ({ layers, target, model }) =>
     </div>
 
 
+// Chart the P(0) over W
+const ProbabilityChart = ({ p0, maxWarheads }) =>
+    <VictoryChart theme={Object.assign({}, VictoryTheme.material, {
+        area: Object.assign({}, VictoryTheme.material.area, {
+            style: {
+                data: {
+                    fill: colors.defensive
+                }
+            }
+        })
+    })}>
+        { p0 > 0 ? <VictoryArea
+            data={[...Array(maxWarheads + 1).keys()].map((_, i) => ({x:i, y: 1}))}
+            x="x"
+            y="y"
+            style={{
+                data: {
+                    fill: colors.offensive
+                }
+            }}
+        /> : null }
+        <VictoryArea
+            data={[...Array(maxWarheads + 1).keys()].map((_, i) => {
+                return {
+                    'x': i,
+                    'y': p0 ? Math.pow(p0, i) : null
+                }
+            })}
+            x="x"
+            y="y"
+        />
+    </VictoryChart>
+
 // This is the entire application - the map, the layer
 // controls, the target information, and the resuting
 // calculations.
@@ -260,9 +294,12 @@ const PageControl = ({ layers, target, modelIndex }) =>
                     <ShareLink />
                 </div>
             </div>
+            <ProbabilityChart
+                p0={P0[modelIndex].model(layers.get('offensive').toJS(), layers.get('defensive').toJS(), target.toJS())}
+                maxWarheads={20}
+            />
         </div>
     </div>
-
 
 // This allows other parts of the application to access these functions
 export { PageControl, EditableText, FormInfo };
