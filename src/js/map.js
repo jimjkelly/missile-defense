@@ -5,6 +5,7 @@ mapping.
 
 */
 
+import _ from 'underscore';
 import MapGL from 'react-map-gl';
 import window from 'global/window';
 import pkg from '../../package.json';
@@ -56,7 +57,7 @@ class DraggableSVGOverlay extends Component {
         this.getCoordinates = this.getCoordinates.bind(this);
         this.onDragStart = this.onDragStart.bind(this);
         this.onDragMove = this.onDragMove.bind(this);
-        this.onDragEnd = this.onDragEnd.bind(this);
+        this.onDragEnd = _.debounce(this.onDragEnd.bind(this), 1000);
     }
 
     getCoordinates(e) {
@@ -68,7 +69,10 @@ class DraggableSVGOverlay extends Component {
 
     onDragStart(e) {
         if (this.props.onDragStart) {
-            this.props.onDragStart(e);
+            this.props.onDragStart(e, {
+                latitude: this.state.latitude,
+                longitude: this.state.longitude
+            });
         }
 
         this.setState({
@@ -92,7 +96,10 @@ class DraggableSVGOverlay extends Component {
 
     onDragEnd(e) {
         if (this.props.onDragEnd) {
-            this.props.onDragEnd(e);
+            this.props.onDragEnd(e, {
+                latitude: this.state.latitude,
+                longitude: this.state.longitude
+            });
         }
 
         this.setState({dragging: false});
@@ -129,8 +136,8 @@ class DraggableSVGOverlay extends Component {
 }
 
 
-const MapLayer = ({ index, mapProps, range, color, probability }) =>
-    <DraggableSVGOverlay {...mapProps} redraw={opt => {
+const MapLayer = ({ index, mapProps, position, range, color, probability, onDragEnd }) =>
+    <DraggableSVGOverlay {...mapProps} onDragEnd={onDragEnd} redraw={opt => {
         const radius = radiusAtZoom(range ? range : 1, mapProps.zoom),
               fillColor = colorAtProbability(color, probability || 0),
               strokeWidth = 5,
@@ -142,12 +149,12 @@ const MapLayer = ({ index, mapProps, range, color, probability }) =>
         }}>
             <circle
                 style={ {fill: fillColor, stroke: fillColor} }
-                transform={ transform([{translate: opt.project([opt.longitude, opt.latitude])}]) }
+                transform={ transform([{translate: opt.project(position || [opt.longitude, opt.latitude])}]) }
                 r={radius}
             />
             <circle
                 style={ {strokeWidth, strokeDasharray: dashLayer(index), fill: 'none', stroke: fillColor}}
-                transform={ transform([{translate: opt.project([opt.longitude, opt.latitude])}]) }
+                transform={ transform([{translate: opt.project(position || [opt.longitude, opt.latitude])}]) }
                 r={(
                     ((2*radius) + (2*strokeWidth) + strokeSpacing)/2
                 )}
@@ -243,14 +250,20 @@ class MapControl extends Component {
         return <div className="map">
             <MapGL { ...mapProps } onChangeViewport={ this._onChangeViewport }>
                 <LayerColorLegend colors={colors} />
-                { this.props.layers.toJS().offensive.filter(l => l.type).map((layer, i) =>
+                { this.props.layers.toJS().offensive.filter(l => l.type).map((layer, index) =>
                     <MapLayer
-                        key={i}
-                        index={i}
+                        key={index}
+                        index={index}
                         mapProps={mapProps}
                         color={colors.offensive}
                         range={layer.range}
                         probability={OffensiveLayer(layer, this.props.target.get('hardness')) || undefined}
+                        position={layer.latitude && layer.longitude ? [layer.longitude, layer.latitude] : undefined}
+                        onDragEnd={(e, { latitude, longitude }) => callAction('UPDATE_LAYER', {
+                            layer: { latitude, longitude },
+                            type: 'offensive',
+                            index
+                        })}
                     />
                 )}
                 { this.props.layers.toJS().defensive.map((layer, i) =>
@@ -261,6 +274,12 @@ class MapControl extends Component {
                         range={layer.range}
                         color={colors.defensive}
                         probability={DefensiveLayer(layer) || undefined}
+                        position={layer.latitude && layer.longitude ? [layer.longitude, layer.latitude] : undefined}
+                        onDragEnd={(e, { latitude, longitude }) => callAction('UPDATE_LAYER', {
+                            layer: { latitude, longitude },
+                            type: 'defensive',
+                            index
+                        })}
                     />
                 )}
             </MapGL>

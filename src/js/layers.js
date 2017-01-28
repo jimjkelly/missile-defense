@@ -314,9 +314,9 @@ const Probability = ({ a, b, value }) =>
 
 
 // A widget for selecting offensive type
-const OffensiveType = ({ index }) =>
+const OffensiveType = ({ index, type }) =>
     <div className="offensive-type">
-        <select name="offensive-type" defaultValue="default" onChange={(e) => callAction('UPDATE_LAYER', {
+        <select name="offensive-type" value={type || 'default'} onChange={(e) => callAction('UPDATE_LAYER', {
             index,
             type: 'offensive',
             layer: { type: e.currentTarget.value }
