@@ -8,6 +8,7 @@ mapping.
 import _ from 'underscore';
 import MapGL from 'react-map-gl';
 import window from 'global/window';
+import { fromJS } from 'immutable';
 import pkg from '../../package.json';
 import { callAction } from './store';
 import React, { Component } from 'react';
@@ -41,6 +42,27 @@ const radiusAtZoom = (meters, zoom) => {
 
 const dashLayer = index => {
     return [Math.pow(2, index+1), Math.pow(2, index)+1];
+}
+
+
+const layersAtLocation = (x, y) => {
+    // No Safari support for elementsFromPoint?  :/
+    // polyfill: https://gist.github.com/oslego/7265412
+    let layers = {
+        'offensive': [],
+        'defensive': []
+    }
+
+    for (let layer of document.elementsFromPoint(x, y)) {
+        const index = parseInt(layer.getAttribute('data-index'), 10),
+              type = layer.getAttribute('data-layer-type')
+
+        if ((index || index === 0) && type) {
+            layers[type].push(index)
+        }
+    }
+
+    callAction('UPDATE_ACTIVE_LAYERS', layers);
 }
 
 
@@ -95,7 +117,7 @@ class DraggableSVGOverlay extends Component {
     }
 
     onDragEnd(e) {
-        if (this.props.onDragEnd) {
+        if (this.props.onDragEnd && (this.state.latitude !== this.props.latitude || this.state.longitude !== this.props.longitude)) {
             this.props.onDragEnd(e, {
                 latitude: this.state.latitude,
                 longitude: this.state.longitude
@@ -111,6 +133,7 @@ class DraggableSVGOverlay extends Component {
               {longitude, latitude} = this.state,
               {project, unproject} = mercator,
               style = {
+                cursor: isDragging ? 'grabbing' : 'grab',
                 pointerEvents: 'none',
                 position: 'absolute',
                 left: 0,
@@ -136,24 +159,32 @@ class DraggableSVGOverlay extends Component {
 }
 
 
-const MapLayer = ({ index, mapProps, position, range, color, probability, onDragEnd }) =>
+const MapLayer = ({ index, type, mapProps, position, range, color, probability, onDragEnd }) =>
     <DraggableSVGOverlay {...mapProps} onDragEnd={onDragEnd} redraw={opt => {
         const radius = radiusAtZoom(range ? range : 1, mapProps.zoom),
               fillColor = colorAtProbability(color, probability || 0),
               strokeWidth = 5,
               strokeSpacing = 4;
 
-        return <g style={{
+        return <g onClick={(e)=> layersAtLocation(e.clientX, e.clientY)} style={{
             pointerEvents: 'all',
             cursor: 'pointer'
         }}>
             <circle
+                data-index={index}
+                data-layer-type={type}
                 style={ {fill: fillColor, stroke: fillColor} }
                 transform={ transform([{translate: opt.project(position || [opt.longitude, opt.latitude])}]) }
                 r={radius}
             />
             <circle
-                style={ {strokeWidth, strokeDasharray: dashLayer(index), fill: 'none', stroke: fillColor}}
+                style={ {
+                    strokeWidth,
+                    strokeDasharray: dashLayer(index),
+                    pointerEvents: 'none',
+                    stroke: fillColor,
+                    fill: 'none'
+                }}
                 transform={ transform([{translate: opt.project(position || [opt.longitude, opt.latitude])}]) }
                 r={(
                     ((2*radius) + (2*strokeWidth) + strokeSpacing)/2
@@ -192,8 +223,8 @@ class MapControl extends Component {
             height: Math.max(document.documentElement.clientHeight, window.innerHeight || 0),
             viewport: {
                 zoom: 10,
-                latitude: props.target.get('latitude'),
-                longitude: props.target.get('longitude'),
+                latitude: props.target.latitude,
+                longitude: props.target.longitude,
                 startDragLngLat: null,
                 isDragging: false
             }
@@ -240,24 +271,26 @@ class MapControl extends Component {
             ...this.state.viewport,
             width: this.state.width,
             height: this.state.height,
-            latitude: this.props.target.get('latitude'),
-            longitude: this.props.target.get('longitude'),
+            latitude: this.props.target.latitude,
+            longitude: this.props.target.longitude,
             mapboxApiAccessToken: pkg.maptoken,
             onDragStart: () => this.setState({childrendragging:true}),
-            onDragEnd: () => this.setState({childrendragging:false})
+            onDragEnd: () => this.setState({childrendragging:false}),
+            onClick: () => layersAtLocation()
         };
 
         return <div className="map">
             <MapGL { ...mapProps } onChangeViewport={ this._onChangeViewport }>
                 <LayerColorLegend colors={colors} />
-                { this.props.layers.toJS().offensive.filter(l => l.type).map((layer, index) =>
+                { this.props.layers.offensive.filter(l => l.type).map((layer, index) =>
                     <MapLayer
                         key={index}
                         index={index}
+                        type='offensive'
                         mapProps={mapProps}
                         color={colors.offensive}
                         range={layer.range}
-                        probability={OffensiveLayer(layer, this.props.target.get('hardness')) || undefined}
+                        probability={OffensiveLayer(layer, this.props.target.hardness) || undefined}
                         position={layer.latitude && layer.longitude ? [layer.longitude, layer.latitude] : undefined}
                         onDragEnd={(e, { latitude, longitude }) => callAction('UPDATE_LAYER', {
                             layer: { latitude, longitude },
@@ -266,10 +299,11 @@ class MapControl extends Component {
                         })}
                     />
                 )}
-                { this.props.layers.toJS().defensive.map((layer, i) =>
+                { this.props.layers.defensive.map((layer, index) =>
                     <MapLayer
-                        key={i}
-                        index={i}
+                        key={index}
+                        index={index}
+                        type='defensive'
                         mapProps={mapProps}
                         range={layer.range}
                         color={colors.defensive}

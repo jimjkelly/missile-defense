@@ -19,33 +19,47 @@ import { p, round } from './utils';
 // modified in the store.
 Object.assign(reducerMap, {
     UPDATE_TARGET: (state, action) => {
-        return state.mergeIn(
-            p(`target`),
-            action.data
-        );
+        return Object.assign({}, state, {
+            target: action.data
+        });
     },
     UPDATE_LAYER: (state, action) => {
-        return state.updateIn(
-            p(`layers.${action.data.type}`),
-            list => list.update(
-                action.data.index,
-                e => e.merge(action.data.layer)
-            )
-        );
+        return Object.assign({}, state, {
+            layers: Object.assign({}, state.layers, {
+                [action.data.type]: [
+                    ...state.layers[action.data.type].slice(0, action.data.index),
+                    Object.assign(
+                        {},
+                        state.layers[action.data.type][action.data.index],
+                        action.data.layer
+                    ),
+                    ...state.layers[action.data.type].slice(action.data.index + 1)
+
+                ]
+            })
+        });
     },
     ADD_LAYER: (state, action) => {
-        return state.updateIn(
-            p(`layers.${action.data.type}`),
-            list => list.push(action.data.layer)
-        );
+        return Object.assign({}, state, {
+            layers: Object.assign({}, state.layers, {
+                [action.data.type]: [
+                    ...state.layers[action.data.type],
+                    action.data.layer
+                ]
+            })
+        });
     },
     REMOVE_LAYER: (state, action) => {
-        return state.updateIn(
-            p(`layers.${action.data.type}`),
-            list => list.filter(
-                (e, i) => i !== action.data.index
-            )
-        );
+        return Object.assign({}, state, {
+            layers: Object.assign({}, state.layers, {
+                [action.data.type]: state.layers[action.data.type].filter((e, i) => i !== action.data.index)
+            })
+        });
+    },
+    UPDATE_ACTIVE_LAYERS: (state, action) => {
+        return Object.assign({}, state, {
+            active: action.data
+        })
     }
 });
 
@@ -288,21 +302,21 @@ const CEP = ({ index, cep }) =>
 // A series of fields for configuring an offensive layer as ground burst
 const GroundBurst = ({ index, layerData }) =>
     <div className="ground-burst">
-        <Range index={index} type="offensive" range={layerData.get('range')} />
-        <Yield index={index} missileYield={layerData.get('yield')} />
-        <Reliability index={index} reliability={layerData.get('reliability')} />
-        <CEP index={index} cep={layerData.get('cep')} />
-        <NumberOfIncomingMissiles index={index} number={layerData.get('number')} />
+        <Range index={index} type="offensive" range={layerData.range} />
+        <Yield index={index} missileYield={layerData.yield} />
+        <Reliability index={index} reliability={layerData.reliability} />
+        <CEP index={index} cep={layerData.cep} />
+        <NumberOfIncomingMissiles index={index} number={layerData.number} />
     </div>
 
 
 // A series of fields for configuring an offensive layer as notional
 const Notional = ({ index, layerData }) =>
     <div className="notional">
-        <Range index={index} type="offensive" range={layerData.get('range')} />
-        <SSPK index={index} type="offensive" sspk={layerData.get('sspk')} />
-        <Reliability index={index} reliability={layerData.get('reliability')} />
-        <NumberOfIncomingMissiles index={index} number={layerData.get('number')} />
+        <Range index={index} type="offensive" range={layerData.range} />
+        <SSPK index={index} type="offensive" sspk={layerData.sspk} />
+        <Reliability index={index} reliability={layerData.reliability} />
+        <NumberOfIncomingMissiles index={index} number={layerData.number} />
     </div>
 
 
@@ -330,19 +344,19 @@ const OffensiveType = ({ index, type }) =>
 
 // An offensive layer widget
 const OffensiveLayer = ({ index, type, layerData, target }) =>
-    <Layer index={index} type={type} name={layerData.get('name')} >
-        <OffensiveType index={index} type={layerData.get('type')} />
-        { layerData.get('type') == 'notional'
+    <Layer index={index} type={type} name={layerData.name} >
+        <OffensiveType index={index} type={layerData.type} />
+        { layerData.type == 'notional'
             ? <Notional index={index} layerData={layerData} />
-            : layerData.get('type') == 'ground-burst'
+            : layerData.type == 'ground-burst'
             ? <GroundBurst index={index} layerData={layerData} />
             : null
         }
-        { layerData.get('type') && !isNaN(OffensiveCalc(layerData.toJS(), target.get('hardness')))
+        { layerData.type && !isNaN(OffensiveCalc(layerData, target.hardness))
             ? <Probability
-                a={layerData.get('name')}
+                a={layerData.name}
                 b="unopposed"
-                value={OffensiveCalc(layerData.toJS(), target.get('hardness'))}
+                value={OffensiveCalc(layerData, target.hardness)}
               />
             : null
         }
@@ -351,13 +365,13 @@ const OffensiveLayer = ({ index, type, layerData, target }) =>
 
 // A defensive layer widget
 const DefensiveLayer = ({ index, type, layerData }) =>
-    <Layer index={index} type={type} name={layerData.get('name')} >
-        <Range index={index} type="defensive" range={layerData.get('range')} />
-        <SSPK index={index} type="defensive" sspk={layerData.get('sspk')} />
-        <Interceptors index={index} interceptors={layerData.get('interceptors')} />
-        <TrackingProbability index={index} tracking={layerData.get('tracking')} />
-        { !isNaN(DefensiveCalc(layerData.toJS()))
-            ? <Probability a={layerData.get('name')} value={DefensiveCalc(layerData.toJS())} />
+    <Layer index={index} type={type} name={layerData.name} >
+        <Range index={index} type="defensive" range={layerData.range} />
+        <SSPK index={index} type="defensive" sspk={layerData.sspk} />
+        <Interceptors index={index} interceptors={layerData.interceptors} />
+        <TrackingProbability index={index} tracking={layerData.tracking} />
+        { !isNaN(DefensiveCalc(layerData))
+            ? <Probability a={layerData.name} value={DefensiveCalc(layerData)} />
             : null
         }
     </Layer>
@@ -369,7 +383,7 @@ const Target = ({ target }) =>
         <label>Target Information:</label>
         <div>
             Latitude: <EditableText
-                text={target.get('latitude')}
+                text={target.latitude}
                 action={(element) => callAction(
                     'UPDATE_TARGET',
                     { latitude: Number(element.value) }
@@ -379,7 +393,7 @@ const Target = ({ target }) =>
         </div>
         <div>
             Longitude: <EditableText
-                text={target.get('longitude')}
+                text={target.longitude}
                 action={(element) => callAction(
                     'UPDATE_TARGET',
                     { longitude: Number(element.value) }
@@ -389,7 +403,7 @@ const Target = ({ target }) =>
         </div>
         <div>
             Hardness (PSI): <EditableText
-                text={target.get('hardness')}
+                text={target.hardness}
                 action={(element) => callAction(
                     'UPDATE_TARGET',
                     { hardness: element.value }

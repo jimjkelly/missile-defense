@@ -15,19 +15,7 @@ import { connect } from 'react-redux';
 import { PageControl } from './ui';
 import { store } from './store';
 
-
-const PageStateManager = connect(
-	state => {
-		const s = state || {};
-		return {
-            modelIndex: s.get('modelIndex'),
-			layers: s.get('layers'),
-            target: s.get('target')
-		};
-	}
-);
-
-const Page = PageStateManager(PageControl);
+const Page = connect(state=> state || {})(PageControl);
 
 ReactDOM.render(
 	<Page store={store} />,

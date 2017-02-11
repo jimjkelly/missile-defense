@@ -6,7 +6,6 @@ data store.
 */
 
 import { atob } from 'global';
-import { fromJS } from 'immutable';
 import { createStore } from 'redux';
 import { logger, urlParams } from './utils';
 
@@ -34,16 +33,15 @@ var actionMap = {
 // mutate the state. The second is some initial
 // state we use to get the application going.
 const store = createStore((state, action) => {
-	logger("previous state", state.toJS());
+	logger("previous state", state);
 	logger("action", action);
 	
 	const computed_state = reducerMap[action.type] ? reducerMap[action.type](state, action) : state;
 
-	logger("next state", computed_state.toJS());
+	logger("next state", computed_state);
 
 	return computed_state;
-}, fromJS(
-	'link' in urlParams
+}, 'link' in urlParams
 	? JSON.parse(atob(urlParams.link))
 	: {
 		modelIndex: "0",
@@ -55,9 +53,13 @@ const store = createStore((state, action) => {
 		layers: {
 			offensive: [],
 			defensive: []
+		},
+		active: {
+			offensive: [],
+			defensive: []
 		}
 	}
-));
+);
 
 
 // The callAction function is a utility we can use to

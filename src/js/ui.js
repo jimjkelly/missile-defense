@@ -13,17 +13,15 @@ import { btoa } from 'global';
 import { MapControl, colors } from './map';
 import { P0 } from './calculations';
 import { OffensiveLayer, DefensiveLayer, Target, Probability } from './layers';
+import { VictoryArea, VictoryChart, VictoryTheme } from 'victory';
 import { callAction, reducerMap, store } from './store';
 import { p, capitalize } from './utils';
-import { VictoryArea, VictoryChart, VictoryTheme } from 'victory';
-import { fromJS } from 'immutable';
 
 
 Object.assign(reducerMap, {
-    UPDATE_MODEL_TYPE: (state, action) => state.mergeIn(
-        p('modelIndex'),
-        action.data
-    )
+    UPDATE_MODEL_TYPE: (state, action) => Object.assign({}, state, {
+        modelIndex: action.data
+    })
 });
 
 
@@ -166,9 +164,9 @@ const LayerButton = ({ type, action, children }) =>
             `${action}_LAYER`,
             {
                 type: type,
-                layer: fromJS({
+                layer: {
                     name: `New ${type} layer`
-                })
+                }
             }
         )}
     >
@@ -189,7 +187,7 @@ const LayerSlider = ({ type, numLayers }) =>
 // Control to add layers as well as the layers themselves
 const LayerControl = ({ type, layers, Layer, target }) =>
     <div className={`layer-control ${type}`}>
-        <LayerSlider type={type} numLayers={layers.size} />
+        <LayerSlider type={type} numLayers={layers.length} />
         {layers.map((layer, index) =>
             <Layer key={index} index={index} type={type} layerData={layer} target={target} />
         )}
@@ -222,13 +220,13 @@ const Controls = ({ layers, target }) =>
         <LayerControl
             type="offensive"
             Layer={OffensiveLayer}
-            layers={layers.get('offensive')}
+            layers={layers.offensive}
             target={target}
         />
         <LayerControl
             type="defensive"
             Layer={DefensiveLayer}
-            layers={layers.get('defensive')}
+            layers={layers.defensive}
         />
     </div>
 
@@ -236,8 +234,8 @@ const Controls = ({ layers, target }) =>
 // Shows the resulting P(0)
 const Calculations = ({ layers, target, model }) =>
     <div className="results">
-        { !isNaN(model(layers.get('offensive').toJS(), layers.get('defensive').toJS(), target.toJS()))
-            ? <Probability a="0" value={model(layers.get('offensive').toJS(), layers.get('defensive').toJS(), target.toJS())} />
+        { !isNaN(model(layers.offensive, layers.defensive, target))
+            ? <Probability a="0" value={model(layers.offensive, layers.defensive, target)} />
             : "P(0): 0.0"
         }
     </div>
@@ -265,12 +263,10 @@ const ProbabilityChart = ({ p0, maxWarheads }) =>
             }}
         /> : null }
         <VictoryArea
-            data={[...Array(maxWarheads + 1).keys()].map((_, i) => {
-                return {
-                    'x': i,
-                    'y': p0 ? Math.pow(p0, i) : null
-                }
-            })}
+            data={[...Array(maxWarheads + 1).keys()].map((_, i) => ({
+                'x': i,
+                'y': p0 ? Math.pow(p0, i) : 1
+            }))}
             x="x"
             y="y"
         />
@@ -279,7 +275,7 @@ const ProbabilityChart = ({ p0, maxWarheads }) =>
 // This is the entire application - the map, the layer
 // controls, the target information, and the resuting
 // calculations.
-const PageControl = ({ layers, target, modelIndex }) =>
+const PageControl = ({ layers, active, target, modelIndex }) =>
     <div className="page">
         <MapControl layers={layers} target={target} />
         <div className="data-display">
@@ -294,10 +290,17 @@ const PageControl = ({ layers, target, modelIndex }) =>
                     <ShareLink />
                 </div>
             </div>
-            <ProbabilityChart
-                p0={P0[modelIndex].model(layers.get('offensive').toJS(), layers.get('defensive').toJS(), target.toJS())}
-                maxWarheads={20}
-            />
+            {active.offensive.length || active.defensive.length
+                ? <ProbabilityChart
+                    p0={P0[modelIndex].model(
+                        layers.offensive.filter((e, i) => active.offensive.includes(i)),
+                        layers.defensive.filter((e, i) => active.defensive.includes(i)),
+                        target
+                    )}
+                    maxWarheads={20}
+                />
+                : null
+            }
         </div>
     </div>
 
