@@ -11,7 +11,7 @@ import { callAction, reducerMap } from './store';
 import { OffensiveLayer as OffensiveCalc, DefensiveLayer as DefensiveCalc } from './calculations';
 import { EditableText, FormInfo } from './ui';
 import { dashLayer, colors } from './map';
-import { p, round } from './utils';
+import { round } from './utils';
 
 
 // Here we add reducer functions to control

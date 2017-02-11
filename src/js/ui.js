@@ -15,7 +15,7 @@ import { P0 } from './calculations';
 import { OffensiveLayer, DefensiveLayer, Target, Probability } from './layers';
 import { VictoryArea, VictoryChart, VictoryTheme } from 'victory';
 import { callAction, reducerMap, store } from './store';
-import { p, capitalize } from './utils';
+import { capitalize } from './utils';
 
 
 Object.assign(reducerMap, {

@@ -8,7 +8,6 @@ mapping.
 import _ from 'underscore';
 import MapGL from 'react-map-gl';
 import window from 'global/window';
-import { fromJS } from 'immutable';
 import pkg from '../../package.json';
 import { callAction } from './store';
 import React, { Component } from 'react';
