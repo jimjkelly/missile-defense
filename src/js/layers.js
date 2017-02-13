@@ -51,6 +51,9 @@ Object.assign(reducerMap, {
     },
     REMOVE_LAYER: (state, action) => {
         return Object.assign({}, state, {
+            active: Object.assign({}, state.active, {
+                [action.data.type]: state.active[action.data.type].filter((e) => e !== action.data.index)
+            }),
             layers: Object.assign({}, state.layers, {
                 [action.data.type]: state.layers[action.data.type].filter((e, i) => i !== action.data.index)
             })

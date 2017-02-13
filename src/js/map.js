@@ -281,7 +281,7 @@ class MapControl extends Component {
         return <div className="map">
             <MapGL { ...mapProps } onChangeViewport={ this._onChangeViewport }>
                 <LayerColorLegend colors={colors} />
-                { this.props.layers.offensive.filter(l => l.type).map((layer, index) =>
+                { this.props.layers.offensive.filter(l => l.type).filter(l => l.range && l.range > 0).map((layer, index) =>
                     <MapLayer
                         key={index}
                         index={index}
@@ -298,7 +298,7 @@ class MapControl extends Component {
                         })}
                     />
                 )}
-                { this.props.layers.defensive.map((layer, index) =>
+                { this.props.layers.defensive.filter(l => l.range && l.range > 0).map((layer, index) =>
                     <MapLayer
                         key={index}
                         index={index}
