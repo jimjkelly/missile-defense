@@ -5,12 +5,12 @@ mapping.
 
 */
 
-import _ from 'underscore';
 import MapGL from 'react-map-gl';
 import window from 'global/window';
 import pkg from '../../package.json';
 import { callAction } from './store';
 import React, { Component } from 'react';
+import autobind from 'autobind-decorator';
 import ViewportMercator from 'viewport-mercator-project';
 import transform from 'svg-transform';
 import { OffensiveLayer, DefensiveLayer } from './calculations';
@@ -74,13 +74,9 @@ class DraggableSVGOverlay extends Component {
             longitude: this.props.longitude,
             latitude: this.props.latitude
         };
-
-        this.getCoordinates = this.getCoordinates.bind(this);
-        this.onDragStart = this.onDragStart.bind(this);
-        this.onDragMove = this.onDragMove.bind(this);
-        this.onDragEnd = _.debounce(this.onDragEnd.bind(this), 1000);
     }
 
+    @autobind
     getCoordinates(e) {
         return [
             typeof e.clientX === 'undefined' ? e.changedTouches[0].clientX : e.clientX,
@@ -88,26 +84,27 @@ class DraggableSVGOverlay extends Component {
         ];
     }
 
-    onDragStart(e) {
+    @autobind
+    onDragStart(event) {
+        event.stopPropagation();
+        document.addEventListener('mousemove', this.onDrag, false);
+        document.addEventListener('mouseup', this.onDragEnd, false);
         if (this.props.onDragStart) {
-            this.props.onDragStart(e, {
+            this.props.onDragStart(event, {
                 latitude: this.state.latitude,
                 longitude: this.state.longitude
             });
         }
 
-        this.setState({
-            dragging: true
-        });
+        this.setState({dragging: true});
     }
 
-    onDragMove(e) {
-        if (!this.state.dragging) {
-            return;
-        } else {
-            const {unproject} = ViewportMercator(this.props),
-                  [longitude, latitude] = unproject(this.getCoordinates(e));
+    @autobind
+    onDrag(event) {
+        event.stopPropagation();
 
+        if (this.state.dragging) {
+            const [longitude, latitude] = this.props.unproject(this.getCoordinates(event));
             this.setState({
                 longitude,
                 latitude
@@ -115,29 +112,34 @@ class DraggableSVGOverlay extends Component {
         }
     }
 
-    onDragEnd(e) {
-        if (this.props.onDragEnd && (this.state.latitude !== this.props.latitude || this.state.longitude !== this.props.longitude)) {
-            this.props.onDragEnd(e, {
-                latitude: this.state.latitude,
-                longitude: this.state.longitude
-            });
-        }
+    @autobind
+    onDragEnd(event) {
+        event.stopPropagation();
 
-        this.setState({dragging: false});
+        if (this.state.dragging) {
+            document.removeEventListener('mousemove', this.onDrag, false);
+            document.removeEventListener('mouseup', this.onDragEnd, false);
+
+            this.setState({dragging: false});
+            if (this.props.onDragEnd && (this.state.latitude !== this.props.latitude || this.state.longitude !== this.props.longitude)) {
+                this.props.onDragEnd(event, {
+                    latitude: this.state.latitude,
+                    longitude: this.state.longitude
+                });
+            }
+        }
     }
 
     render() {
-        const mercator = ViewportMercator(this.props),
-              {width, height, isDragging} = this.props,
-              {longitude, latitude} = this.state,
-              {project, unproject} = mercator,
+        const {longitude, latitude} = this.state,
+              {width, height, zoom, isDragging} = this.props,
               style = {
+                ...this.props.style,
                 cursor: isDragging ? 'grabbing' : 'grab',
                 pointerEvents: 'none',
                 position: 'absolute',
                 left: 0,
-                top: 0,
-                ...this.props.style
+                top: 0
               };
 
         return <svg
@@ -145,27 +147,23 @@ class DraggableSVGOverlay extends Component {
             style={style}
             width={this.props.width}
             height={this.props.height}
-            onMouseDown={this.onDragStart}
-            onTouchStart={this.onDragStart}
-            onMouseMove={this.onDragMove}
-            onTouchMove={this.onDragMove}
-            onMouseUp={this.onDragEnd}
-            onTouchEnd={this.onDragEnd}
         >
-            { this.props.redraw({width, height, longitude, latitude, project, unproject, isDragging}) }
+            <g onMouseDown={this.onDragStart}>
+                { this.props.redraw({width, height, zoom, longitude, latitude, isDragging}) }
+            </g>
         </svg>
     }
 }
 
 
-const MapLayer = ({ index, type, mapProps, position, range, color, probability, onDragEnd }) =>
-    <DraggableSVGOverlay {...mapProps} onDragEnd={onDragEnd} redraw={opt => {
+const MapLayer = ({ index, type, mapProps, latitude, longitude, range, project, unproject, color, probability }) =>
+    <DraggableSVGOverlay {...mapProps} latitude={latitude} longitude={longitude} unproject={unproject} redraw={opt => {
         const radius = radiusAtZoom(range ? range : 1, mapProps.zoom),
               fillColor = colorAtProbability(color, probability || 0),
               strokeWidth = 5,
               strokeSpacing = 4;
 
-        return <g onClick={(e)=> layersAtLocation(e.clientX, e.clientY)} style={{
+        return <g onClick={(e) => layersAtLocation(e.clientX, e.clientY)} style={{
             pointerEvents: 'all',
             cursor: 'pointer'
         }}>
@@ -173,7 +171,7 @@ const MapLayer = ({ index, type, mapProps, position, range, color, probability, 
                 data-index={index}
                 data-layer-type={type}
                 style={ {fill: fillColor, stroke: fillColor} }
-                transform={ transform([{translate: opt.project(position || [opt.longitude, opt.latitude])}]) }
+                transform={transform([{translate: project([opt.longitude, opt.latitude])}])}
                 r={radius}
             />
             <circle
@@ -184,7 +182,7 @@ const MapLayer = ({ index, type, mapProps, position, range, color, probability, 
                     stroke: fillColor,
                     fill: 'none'
                 }}
-                transform={ transform([{translate: opt.project(position || [opt.longitude, opt.latitude])}]) }
+                transform={ transform([{translate: project([opt.longitude, opt.latitude])}]) }
                 r={(
                     ((2*radius) + (2*strokeWidth) + strokeSpacing)/2
                 )}
@@ -218,21 +216,18 @@ class MapControl extends Component {
 
         this.state = {
             childrendragging: false,
-            width: Math.max(document.documentElement.clientWidth * 0.75, window.innerWidth * 0.75 || 0),
-            height: Math.max(document.documentElement.clientHeight, window.innerHeight || 0),
             viewport: {
                 zoom: 10,
                 latitude: props.target.latitude,
                 longitude: props.target.longitude,
-                startDragLngLat: null,
-                isDragging: false
+                width: Math.max(document.documentElement.clientWidth * 0.75, window.innerWidth * 0.75 || 0),
+                height: Math.max(document.documentElement.clientHeight, window.innerHeight || 0),
+                startDragLngLat: null
             }
         }
-
-        this._resize = this._resize.bind(this);
-        this._onChangeViewport = this._onChangeViewport.bind(this);
     }
 
+    @autobind
     _onChangeViewport(viewport) {
         if (this.state.childrendragging) {
             return;
@@ -243,16 +238,25 @@ class MapControl extends Component {
         }
 
         if (this.props.onChangeViewport) {
-          return this.props.onChangeViewport(viewport);
+          this.props.onChangeViewport(viewport);
         }
 
-        this.setState({viewport});
+        this.setState({
+            viewport: {
+                ...this.state.viewport,
+                ...viewport
+            }
+        });
     }
 
+    @autobind
     _resize() {
         this.setState({
-            width: Math.max(document.documentElement.clientWidth * 0.75, window.innerWidth * 0.75 || 0),
-            height: Math.max(document.documentElement.clientHeight, window.innerHeight || 0), 
+            viewport: {
+                ...this.state.viewport,
+                width: Math.max(document.documentElement.clientWidth * 0.75, window.innerWidth * 0.75 || 0),
+                height: Math.max(document.documentElement.clientHeight, window.innerHeight || 0),
+            }
         })
     }
 
@@ -265,54 +269,69 @@ class MapControl extends Component {
     }
 
     render() {
+        const childrenDragging = (value) => this.setState({childrendragging:value});
+        const {project, unproject} = ViewportMercator(this.state.viewport);
         const mapProps = {
             ...this.props,
             ...this.state.viewport,
-            width: this.state.width,
-            height: this.state.height,
-            latitude: this.props.target.latitude,
-            longitude: this.props.target.longitude,
             mapboxApiAccessToken: pkg.maptoken,
-            onDragStart: () => this.setState({childrendragging:true}),
-            onDragEnd: () => this.setState({childrendragging:false}),
+            isDragging: this.state.childrendragging,
             onClick: () => layersAtLocation()
         };
 
         return <div className="map">
             <MapGL { ...mapProps } onChangeViewport={ this._onChangeViewport }>
                 <LayerColorLegend colors={colors} />
-                { this.props.layers.offensive.filter(l => l.type).filter(l => l.range && l.range > 0).map((layer, index) =>
-                    <MapLayer
+                { this.props.layers.offensive.filter(l => l.type).filter(l => l.range && l.range > 0).map((layer, index) => {
+                    return <MapLayer
                         key={index}
                         index={index}
                         type='offensive'
-                        mapProps={mapProps}
                         color={colors.offensive}
                         range={layer.range}
+                        project={project}
+                        unproject={unproject}
+                        latitude={layer.latitude || this.props.target.latitude}
+                        longitude={layer.longitude || this.props.target.longitude}
                         probability={OffensiveLayer(layer, this.props.target.hardness) || undefined}
-                        position={layer.latitude && layer.longitude ? [layer.longitude, layer.latitude] : undefined}
-                        onDragEnd={(e, { latitude, longitude }) => callAction('UPDATE_LAYER', {
-                            layer: { latitude, longitude },
-                            type: 'offensive',
-                            index
-                        })}
+                        mapProps={{
+                            ...mapProps,
+                            onDragStart: () => childrenDragging(true),
+                            onDragEnd: (e, { latitude, longitude }) => {
+                                childrenDragging(false);
+                                callAction('UPDATE_LAYER', {
+                                    layer: { latitude, longitude },
+                                    type: 'offensive',
+                                    index
+                                })
+                            }
+                        }}
                     />
-                )}
+                })}
                 { this.props.layers.defensive.filter(l => l.range && l.range > 0).map((layer, index) =>
                     <MapLayer
                         key={index}
                         index={index}
                         type='defensive'
-                        mapProps={mapProps}
                         range={layer.range}
+                        project={project}
+                        unproject={unproject}
                         color={colors.defensive}
+                        latitude={layer.latitude || this.props.target.latitude}
+                        longitude={layer.longitude || this.props.target.longitude}
                         probability={DefensiveLayer(layer) || undefined}
-                        position={layer.latitude && layer.longitude ? [layer.longitude, layer.latitude] : undefined}
-                        onDragEnd={(e, { latitude, longitude }) => callAction('UPDATE_LAYER', {
-                            layer: { latitude, longitude },
-                            type: 'defensive',
-                            index
-                        })}
+                        mapProps={{
+                            ...mapProps,
+                            onDragStart: () => childrenDragging(true),
+                            onDragEnd: (e, { latitude, longitude }) => {
+                                childrenDragging(false);
+                                callAction('UPDATE_LAYER', {
+                                    layer: { latitude, longitude },
+                                    type: 'defensive',
+                                    index
+                                })
+                            }
+                        }}
                     />
                 )}
             </MapGL>
