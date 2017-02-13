@@ -101,6 +101,7 @@
     "debounce": "^1.0.0",
     "eslint-plugin-react": "^6.7.1",
     "immutable": "^3.8.1",
+    "pre-push": "^0.1.1",
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
     "react-map-gl": "^2.0.1",
@@ -111,5 +112,9 @@
     "svg-transform": "^0.0.3",
     "victory": "^0.15.0",
     "viewport-mercator-project": "^3.0.0-beta2"
-  }
+  },
+  "pre-push": [
+    "lint",
+    "test"
+  ]
 }
