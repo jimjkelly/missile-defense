@@ -13,7 +13,7 @@ import { btoa } from 'global';
 import { MapControl, colors } from './map';
 import { P0 } from './calculations';
 import { OffensiveLayer, DefensiveLayer, Target, Probability } from './layers';
-import { VictoryArea, VictoryChart, VictoryTheme } from 'victory';
+import { VictoryArea, VictoryChart, VictoryTheme, VictoryLabel } from 'victory';
 import { callAction, reducerMap, store } from './store';
 import { capitalize } from './utils';
 
@@ -270,6 +270,8 @@ const ProbabilityChart = ({ p0, maxWarheads }) =>
             x="x"
             y="y"
         />
+        <VictoryLabel transform="translate(115, 340)" text="Number of Warheads" />
+        <VictoryLabel transform="rotate(-90, 120, 110)" text="Probability of No Strikes" />
     </VictoryChart>
 
 // This is the entire application - the map, the layer
