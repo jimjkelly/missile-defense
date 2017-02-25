@@ -5,6 +5,7 @@ data store.
 
 */
 
+import _ from 'lodash';
 import { atob } from 'global';
 import { createStore } from 'redux';
 import { logger, urlParams } from './utils';
@@ -41,9 +42,7 @@ const store = createStore((state, action) => {
 	logger("next state", computed_state);
 
 	return computed_state;
-}, 'link' in urlParams
-	? JSON.parse(atob(urlParams.link))
-	: {
+}, _.merge({
 		modelIndex: "0",
 		map: {
 			zoom: 10
@@ -61,8 +60,11 @@ const store = createStore((state, action) => {
 			offensive: [],
 			defensive: []
 		}
-	}
-);
+	},
+	'link' in urlParams
+	? JSON.parse(atob(urlParams.link))
+	: {}
+));
 
 
 // The callAction function is a utility we can use to
