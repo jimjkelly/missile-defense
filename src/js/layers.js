@@ -6,6 +6,7 @@ defensive layers.
 
 */
 
+import _ from 'lodash';
 import React from 'react';
 import { callAction, reducerMap } from './store';
 import { OffensiveLayer as OffensiveCalc, DefensiveLayer as DefensiveCalc } from './calculations';
@@ -19,7 +20,7 @@ import { round } from './utils';
 // modified in the store.
 Object.assign(reducerMap, {
     UPDATE_TARGET: (state, action) => {
-        return Object.assign({}, state, {
+        return _.merge(state, {
             target: action.data
         });
     },
