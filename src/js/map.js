@@ -8,13 +8,22 @@ mapping.
 import MapGL from 'react-map-gl';
 import window from 'global/window';
 import pkg from '../../package.json';
-import { callAction } from './store';
+import { callAction, reducerMap } from './store';
 import React, { Component } from 'react';
 import autobind from 'autobind-decorator';
 import ViewportMercator from 'viewport-mercator-project';
 import transform from 'svg-transform';
 import { OffensiveLayer, DefensiveLayer } from './calculations';
 import { alphaify } from './utils';
+
+
+Object.assign(reducerMap, {
+    UPDATE_MAP: (state, action) => {
+        return Object.assign({}, state, {
+            map: Object.assign({}, state.map, action.data)
+        });
+    }
+});
 
 
 // Some colors used that we can refer to
@@ -217,7 +226,7 @@ class MapControl extends Component {
         this.state = {
             childrendragging: false,
             viewport: {
-                zoom: 10,
+                zoom: props.map.zoom,
                 latitude: props.target.latitude,
                 longitude: props.target.longitude,
                 width: Math.max(document.documentElement.clientWidth * 0.75, window.innerWidth * 0.75 || 0),
@@ -235,6 +244,10 @@ class MapControl extends Component {
 
         if (this.state.viewport.latitude != viewport.latitude || this.state.viewport.longitude != viewport.longitude) {
             callAction('UPDATE_TARGET', { latitude: viewport.latitude, longitude: viewport.longitude });
+        }
+
+        if (this.state.viewport.zoom != viewport.zoom) {
+            callAction('UPDATE_MAP', { zoom: viewport.zoom });
         }
 
         if (this.props.onChangeViewport) {

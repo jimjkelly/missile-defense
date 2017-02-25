@@ -275,9 +275,9 @@ const ProbabilityChart = ({ p0, maxWarheads }) =>
 // This is the entire application - the map, the layer
 // controls, the target information, and the resuting
 // calculations.
-const PageControl = ({ layers, active, target, modelIndex }) =>
+const PageControl = ({ map, layers, active, target, modelIndex }) =>
     <div className="page">
-        <MapControl layers={layers} target={target} />
+        <MapControl map={map} layers={layers} target={target} />
         <div className="data-display">
             <Controls layers={layers} target={target} />
             <div className="bottom-controls">
