@@ -107,12 +107,12 @@ Returns:
 
 */
 const OffensiveLayer = (layer, hardness) => {
-    if (layer.type === 'notional') {
+    if (layer.offensiveType === 'notional') {
         return TKP(layer.sspk, layer.reliability)
-    } else if (layer.type === 'ground-burst') {
+    } else if (layer.offensiveType === 'ground-burst') {
         return TKP(SSPK(LR(layer.yield, hardness), layer.cep), layer.reliability);
     } else {
-        throw `Unknown offensive layer type: ${layer.type}`;
+        throw `Unknown offensive layer type: ${layer.offensiveType}`;
     }
 }
 
@@ -256,7 +256,7 @@ const P0 = [
         'description': null,
         'model': (offensive, defensive, target) => {
             const defensiveLayers = defensive.length > 0 ? defensive.map(layer => DefensiveLayer(layer)) : [],
-                  offensiveLayers = offensive.length > 0 ? offensive.filter(l => l.type).map(layer => OffensiveLayer(layer, target.hardness)) : null;
+                  offensiveLayers = offensive.length > 0 ? offensive.filter(l => l.offensiveType).map(layer => OffensiveLayer(layer, target.hardness)) : null;
 
             return offensiveLayers ? offensiveLayers.reduce((p, c) => p * (1 - PW(c, defensiveLayers)), 1) : null;
         }

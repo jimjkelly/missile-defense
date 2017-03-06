@@ -36,7 +36,7 @@ var actionMap = {
 const store = createStore((state, action) => {
 	logger("previous state", state);
 	logger("action", action);
-	
+
 	const computed_state = reducerMap[action.type] ? reducerMap[action.type](state, action) : state;
 
 	logger("next state", computed_state);
@@ -52,14 +52,8 @@ const store = createStore((state, action) => {
 			longitude: -122.4376,
 			hardness: 100
 		},
-		layers: {
-			offensive: [],
-			defensive: []
-		},
-		active: {
-			offensive: [],
-			defensive: []
-		}
+		layers: [],
+		active: []
 	},
 	'link' in urlParams
 	? JSON.parse(atob(urlParams.link))

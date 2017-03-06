@@ -26,38 +26,33 @@ Object.assign(reducerMap, {
     },
     UPDATE_LAYER: (state, action) => {
         return Object.assign({}, state, {
-            layers: Object.assign({}, state.layers, {
-                [action.data.type]: [
-                    ...state.layers[action.data.type].slice(0, action.data.index),
-                    Object.assign(
-                        {},
-                        state.layers[action.data.type][action.data.index],
-                        action.data.layer
-                    ),
-                    ...state.layers[action.data.type].slice(action.data.index + 1)
-
-                ]
-            })
+            layers: [
+                ...state.layers.slice(0, action.data.index),
+                Object.assign(
+                    {},
+                    state.layers[action.data.index],
+                    action.data.layer
+                ),
+                ...state.layers.slice(action.data.index + 1)
+            ]
         });
     },
     ADD_LAYER: (state, action) => {
         return Object.assign({}, state, {
-            layers: Object.assign({}, state.layers, {
-                [action.data.type]: [
-                    ...state.layers[action.data.type],
-                    action.data.layer
-                ]
-            })
+            layers: [
+                ...state.layers,
+                action.data
+            ]
         });
     },
     REMOVE_LAYER: (state, action) => {
+        const layers = state.layers.filter((e, i) => i !== action.data.index);
+        const active = state.active.filter((e) => e !== action.data.index).map(c =>
+            layers.indexOf(state.layers[c])
+        );
         return Object.assign({}, state, {
-            active: Object.assign({}, state.active, {
-                [action.data.type]: state.active[action.data.type].filter((e) => e !== action.data.index)
-            }),
-            layers: Object.assign({}, state.layers, {
-                [action.data.type]: state.layers[action.data.type].filter((e, i) => i !== action.data.index)
-            })
+            active,
+            layers
         });
     },
     UPDATE_ACTIVE_LAYERS: (state, action) => {
@@ -74,7 +69,6 @@ const Layer = ({ index, type, name, children }) =>
         <EditableText
             text={name}
             action={(element) => callAction('UPDATE_LAYER', {
-                type,
                 index,
                 layer: { name: element.value }
             })}
@@ -98,7 +92,6 @@ const Range = ({ index, type, range }) =>
                 text={range || 0}
                 action={element => callAction('UPDATE_LAYER', {
                     index,
-                    type,
                     layer: { range: element.value }
                 })}
                 validate={e => (0 <= e.value && e.value == parseInt(e.value, 10))}
@@ -124,7 +117,6 @@ const SSPK = ({ index, type, sspk }) =>
                 text={sspk || 0}
                 action={element => callAction('UPDATE_LAYER', {
                     index,
-                    type,
                     layer: { sspk: element.value }
                 })}
                 validate={e => (0 <= e.value && e.value <= 1)}
@@ -151,7 +143,6 @@ const Interceptors = ({ index, interceptors }) =>
                 text={interceptors || 0}
                 action={element => callAction('UPDATE_LAYER', {
                     index,
-                    type: 'defensive',
                     layer: { interceptors: element.value }
                 })}
                 validate={e => (0 <= e.value && e.value == parseInt(e.value, 10))}
@@ -177,7 +168,6 @@ const TrackingProbability = ({ index, tracking }) =>
                 text={tracking || 0}
                 action={element => callAction('UPDATE_LAYER', {
                     index,
-                    type: 'defensive',
                     layer: { tracking: element.value }
                 })}
                 validate={e => (0 <= e.value && e.value <= 1)}
@@ -203,7 +193,6 @@ const Reliability = ({ index, reliability }) =>
                 text={reliability || 0}
                 action={element => callAction('UPDATE_LAYER', {
                     index,
-                    type: 'offensive',
                     layer: { reliability: element.value }
                 })}
                 validate={e => (0 <= e.value && e.value <= 1)}
@@ -229,7 +218,6 @@ const NumberOfIncomingMissiles = ({ index, number }) =>
                 text={number || 0}
                 action={element => callAction('UPDATE_LAYER', {
                     index,
-                    type: 'offensive',
                     layer: { number: element.value }
                 })}
                 validate={e => (0 <= e.value && e.value == parseInt(e.value, 10))}
@@ -255,7 +243,6 @@ const Yield = ({ index, missileYield }) =>
                 text={missileYield || 0}
                 action={element => callAction('UPDATE_LAYER', {
                     index,
-                    type: 'offensive',
                     layer: { yield: element.value }
                 })}
                 validate={e => (0 <= e.value && e.value == parseInt(e.value, 10))}
@@ -281,7 +268,6 @@ const CEP = ({ index, cep }) =>
                 text={cep || 0}
                 action={element => callAction('UPDATE_LAYER', {
                     index,
-                    type: 'offensive',
                     layer: { cep: element.value }
                 })}
                 validate={e => (0 <= e.value && e.value == parseInt(e.value, 10))}
@@ -336,8 +322,7 @@ const OffensiveType = ({ index, type }) =>
     <div className="offensive-type">
         <select name="offensive-type" value={type || 'default'} onChange={(e) => callAction('UPDATE_LAYER', {
             index,
-            type: 'offensive',
-            layer: { type: e.currentTarget.value }
+            layer: { offensiveType: e.currentTarget.value }
         })}>
             <option value="default" disabled hidden>Select an Offensive Type</option>
             <option value="notional">Notional</option>
@@ -349,14 +334,14 @@ const OffensiveType = ({ index, type }) =>
 // An offensive layer widget
 const OffensiveLayer = ({ index, type, layerData, target }) =>
     <Layer index={index} type={type} name={layerData.name} >
-        <OffensiveType index={index} type={layerData.type} />
-        { layerData.type == 'notional'
+        <OffensiveType index={index} type={layerData.offensiveType} />
+        { layerData.offensiveType == 'notional'
             ? <Notional index={index} layerData={layerData} />
-            : layerData.type == 'ground-burst'
+            : layerData.offensiveType == 'ground-burst'
             ? <GroundBurst index={index} layerData={layerData} />
             : null
         }
-        { layerData.type && !isNaN(OffensiveCalc(layerData, target.hardness))
+        { layerData.offensiveType && !isNaN(OffensiveCalc(layerData, target.hardness))
             ? <Probability
                 a={layerData.name}
                 b="unopposed"

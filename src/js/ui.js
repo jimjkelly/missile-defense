@@ -164,9 +164,7 @@ const LayerButton = ({ type, action, children }) =>
             `${action}_LAYER`,
             {
                 type: type,
-                layer: {
-                    name: `New ${type} layer`
-                }
+                name: `New ${type} layer`
             }
         )}
     >
@@ -189,7 +187,9 @@ const LayerControl = ({ type, layers, Layer, target }) =>
     <div className={`layer-control ${type}`}>
         <LayerSlider type={type} numLayers={layers.length} />
         {layers.map((layer, index) =>
-            <Layer key={index} index={index} type={type} layerData={layer} target={target} />
+            layer.type === type
+                ? <Layer key={index} index={index} type={type} layerData={layer} target={target} />
+                : null
         )}
     </div>
 
@@ -220,13 +220,13 @@ const Controls = ({ layers, target }) =>
         <LayerControl
             type="offensive"
             Layer={OffensiveLayer}
-            layers={layers.offensive}
+            layers={layers}
             target={target}
         />
         <LayerControl
             type="defensive"
             Layer={DefensiveLayer}
-            layers={layers.defensive}
+            layers={layers}
         />
     </div>
 
@@ -234,8 +234,8 @@ const Controls = ({ layers, target }) =>
 // Shows the resulting P(0)
 const Calculations = ({ layers, target, model }) =>
     <div className="results">
-        { !isNaN(model(layers.offensive, layers.defensive, target))
-            ? <Probability a="0" value={model(layers.offensive, layers.defensive, target)} />
+        { !isNaN(model(layers.filter(e => e.type === 'offensive'), layers.filter(e => e.type === 'defensive'), target))
+            ? <Probability a="0" value={model(layers.filter(e => e.type === 'offensive'), layers.filter(e => e.type === 'defensive'), target)} />
             : "P(0): 0.0"
         }
     </div>
@@ -292,11 +292,11 @@ const PageControl = ({ map, layers, active, target, modelIndex }) =>
                     <ShareLink />
                 </div>
             </div>
-            {active.offensive.length || active.defensive.length
+            {active.length
                 ? <ProbabilityChart
                     p0={P0[modelIndex].model(
-                        layers.offensive.filter((e, i) => active.offensive.includes(i)),
-                        layers.defensive.filter((e, i) => active.defensive.includes(i)),
+                        layers.filter((e, i) => active.includes(i)).filter((e, i) => e.type === 'offensive'),
+                        layers.filter((e, i) => active.includes(i)).filter((e, i) => e.type === 'defensive'),
                         target
                     )}
                     maxWarheads={20}

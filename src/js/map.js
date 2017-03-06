@@ -56,17 +56,13 @@ const dashLayer = index => {
 const layersAtLocation = (x, y) => {
     // No Safari support for elementsFromPoint?  :/
     // polyfill: https://gist.github.com/oslego/7265412
-    let layers = {
-        'offensive': [],
-        'defensive': []
-    }
+    let layers = []
 
     for (let layer of document.elementsFromPoint(x, y)) {
-        const index = parseInt(layer.getAttribute('data-index'), 10),
-              type = layer.getAttribute('data-layer-type')
+        const index = parseInt(layer.getAttribute('data-index'), 10);
 
-        if ((index || index === 0) && type) {
-            layers[type].push(index)
+        if (index || index === 0) {
+            layers.push(index)
         }
     }
 
@@ -295,18 +291,22 @@ class MapControl extends Component {
         return <div className="map">
             <MapGL { ...mapProps } onChangeViewport={ this._onChangeViewport }>
                 <LayerColorLegend colors={colors} />
-                { this.props.layers.offensive.filter(l => l.type).filter(l => l.range && l.range > 0).map((layer, index) => {
-                    return <MapLayer
+                { this.props.layers.filter(l => l.range && l.range > 0).map((layer, index) => <MapLayer
                         key={index}
                         index={index}
-                        type='offensive'
-                        color={colors.offensive}
+                        type={layer.type}
+                        color={colors[layer.type]}
                         range={layer.range}
                         project={project}
                         unproject={unproject}
                         latitude={layer.latitude || this.props.target.latitude}
                         longitude={layer.longitude || this.props.target.longitude}
-                        probability={OffensiveLayer(layer, this.props.target.hardness) || undefined}
+                        probability={layer.type === 'offensive'
+                            ? OffensiveLayer(layer, this.props.target.hardness) || undefined
+                            : layer.type === 'defensive'
+                            ? DefensiveLayer(layer) || undefined
+                            : undefined
+                        }
                         mapProps={{
                             ...mapProps,
                             onDragStart: () => childrenDragging(true),
@@ -314,33 +314,6 @@ class MapControl extends Component {
                                 childrenDragging(false);
                                 callAction('UPDATE_LAYER', {
                                     layer: { latitude, longitude },
-                                    type: 'offensive',
-                                    index
-                                })
-                            }
-                        }}
-                    />
-                })}
-                { this.props.layers.defensive.filter(l => l.range && l.range > 0).map((layer, index) =>
-                    <MapLayer
-                        key={index}
-                        index={index}
-                        type='defensive'
-                        range={layer.range}
-                        project={project}
-                        unproject={unproject}
-                        color={colors.defensive}
-                        latitude={layer.latitude || this.props.target.latitude}
-                        longitude={layer.longitude || this.props.target.longitude}
-                        probability={DefensiveLayer(layer) || undefined}
-                        mapProps={{
-                            ...mapProps,
-                            onDragStart: () => childrenDragging(true),
-                            onDragEnd: (e, { latitude, longitude }) => {
-                                childrenDragging(false);
-                                callAction('UPDATE_LAYER', {
-                                    layer: { latitude, longitude },
-                                    type: 'defensive',
                                     index
                                 })
                             }
