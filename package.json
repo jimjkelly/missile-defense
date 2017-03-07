@@ -107,6 +107,7 @@
     "react-map-gl": "^2.0.1",
     "react-popover": "^0.4.4",
     "react-redux": "^5.0.1",
+    "react-sortable": "^1.2.0",
     "redux": "^3.6.0",
     "semantic-ui-react": "^0.64.4",
     "svg-transform": "^0.0.3",

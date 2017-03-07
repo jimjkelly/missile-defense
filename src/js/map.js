@@ -5,11 +5,13 @@ mapping.
 
 */
 
+import _ from 'lodash';
 import MapGL from 'react-map-gl';
 import window from 'global/window';
 import pkg from '../../package.json';
 import { callAction, reducerMap } from './store';
 import React, { Component } from 'react';
+import { sortable } from 'react-sortable';
 import autobind from 'autobind-decorator';
 import ViewportMercator from 'viewport-mercator-project';
 import transform from 'svg-transform';
@@ -68,6 +70,14 @@ const layersAtLocation = (x, y) => {
 
     callAction('UPDATE_ACTIVE_LAYERS', layers);
 }
+
+
+const layerProbability = (layer, hardness) =>
+    layer.type === 'offensive'
+    ? OffensiveLayer(layer, hardness) || undefined
+    : layer.type === 'defensive'
+    ? DefensiveLayer(layer) || undefined
+    : undefined;
 
 
 // This provides the draggable circles
@@ -196,6 +206,71 @@ const MapLayer = ({ index, type, mapProps, latitude, longitude, range, project, 
     }} />
 
 
+const SortableLayer = sortable(React.createClass({
+    displayName: 'SortableLayer',
+
+    onDragStart(e) {
+        this.props.onDragStart(e);
+    },
+
+    render: function() {
+        return <div {...this.props} onDragStart={this.onDragStart} className="list-item">
+            {this.props.children}
+        </div>
+    }
+}));
+
+
+class SortableLayers extends Component {
+    constructor(props) {
+        super(props);
+
+        this.updateState = this.updateState.bind(this);
+        this.state = {
+            draggingIndex: null,
+            items: props.layers.slice()
+        }
+    }
+
+    updateState(data) {
+        if (data.items && !_.isEqual(data.items, this.props.layers) && this.props.onChange) {
+            this.props.onChange(data.items)
+        }
+
+        this.setState(data);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (!_.isEqual(nextProps.layers, this.state.items)) {
+            this.setState({ items: nextProps.items });
+        }
+    }
+
+    render() {
+        const { colors, hardness } = this.props;
+
+        return <div className="layers-order" onMouseDown={(e) => e.stopPropagation()}>
+            {this.state.items.map((layer, i) =>
+                <SortableLayer
+                    key={i}
+                    items={this.state.items}
+                    sortId={i}
+                    outline="list"
+                    updateState={this.updateState}
+                    draggingIndex={this.state.draggingIndex}
+                >
+                    <span>
+                        {i+1}
+                        <span style={{ padding: '0 5px', backgroundColor: colorAtProbability(colors[layer.type], layerProbability(layer, hardness) || 0) }} >&nbsp;</span>
+                        {layer.name}
+                    </span>
+                </SortableLayer>
+            )}
+        </div>
+    }
+}
+
+
 const LayerColorLegend = ({ colors }) =>
     <svg style={{ pointerEvents: 'none', cursor: 'none' }} width="160" height="60" version="1.1" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -302,9 +377,11 @@ class MapControl extends Component {
         };
 
         return <div className="map">
+            <SortableLayers layers={this.props.layers} colors={colors} hardness={this.props.target.hardness} onChange={(d) => callAction('REORDER_LAYERS', d)} />
             <MapGL { ...mapProps } onChangeViewport={ this._onChangeViewport }>
                 <LayerColorLegend colors={colors} />
-                { this.props.layers.filter(l => l.range && l.range > 0).map((layer, index) => <MapLayer
+                { this.props.layers.filter(l => l.range && l.range > 0).map((layer, index) =>
+                    <MapLayer
                         key={index}
                         index={index}
                         type={layer.type}
@@ -314,12 +391,7 @@ class MapControl extends Component {
                         unproject={unproject}
                         latitude={layer.latitude || this.props.target.latitude}
                         longitude={layer.longitude || this.props.target.longitude}
-                        probability={layer.type === 'offensive'
-                            ? OffensiveLayer(layer, this.props.target.hardness) || undefined
-                            : layer.type === 'defensive'
-                            ? DefensiveLayer(layer) || undefined
-                            : undefined
-                        }
+                        probability={layerProbability(layer, this.props.target.hardness)}
                         mapProps={{
                             ...mapProps,
                             onDragStart: () => childrenDragging(true),

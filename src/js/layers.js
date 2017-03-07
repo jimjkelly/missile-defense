@@ -44,6 +44,12 @@ Object.assign(reducerMap, {
             ]
         });
     },
+    REORDER_LAYERS: (state, action) => {
+        return Object.assign({}, state, {
+            layers: action.data,
+            active: state.active.map(c => action.data.indexOf(state.layers[c]))
+        })
+    },
     REMOVE_LAYER: (state, action) => {
         const layers = state.layers.filter((e, i) => i !== action.data.index);
         const active = state.active.filter((e) => e !== action.data.index).map(c =>
@@ -60,6 +66,7 @@ Object.assign(reducerMap, {
         })
     }
 });
+
 
 // A generic layer container, which shows an editable
 // name, a button to delete it, and its children.
