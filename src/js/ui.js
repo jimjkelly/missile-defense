@@ -185,7 +185,7 @@ const LayerSlider = ({ type, numLayers }) =>
 // Control to add layers as well as the layers themselves
 const LayerControl = ({ type, layers, Layer, target }) =>
     <div className={`layer-control ${type}`}>
-        <LayerSlider type={type} numLayers={layers.length} />
+        <LayerSlider type={type} numLayers={layers.filter(e => e.type === type).length} />
         {layers.map((layer, index) =>
             layer.type === type
                 ? <Layer key={index} index={index} type={type} layerData={layer} target={target} />
