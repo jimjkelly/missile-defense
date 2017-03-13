@@ -137,7 +137,7 @@ const SSPK = ({ index, sspk }) =>
 const Interceptors = ({ index, interceptors }) =>
     <div className="interceptors">
         <label>
-            Interceptors:
+            Interceptors per Target:
             <EditableText
                 text={interceptors || 0}
                 action={element => callAction('UPDATE_LAYER', {
@@ -149,7 +149,7 @@ const Interceptors = ({ index, interceptors }) =>
         </label>
         <FormInfo>
             <div>
-                Number of Interceptors in Layer
+                Number of Interceptors in Layer per Target
             </div>
             <div>
                 Must be an integer greater than or equal to 1.
@@ -203,31 +203,6 @@ const Reliability = ({ index, reliability }) =>
             </div>
             <div>
                 Must be a value between 0 and 1, inclusive.
-            </div>
-        </FormInfo>
-    </div>
-
-
-// A field for the number of incoming missiles
-const NumberOfIncomingMissiles = ({ index, number }) =>
-    <div className="number">
-        <label>
-            Number:
-            <EditableText
-                text={number || 0}
-                action={element => callAction('UPDATE_LAYER', {
-                    index,
-                    layer: { number: element.value }
-                })}
-                validate={e => (0 <= e.value && e.value == parseInt(e.value, 10))}
-            />
-        </label>
-        <FormInfo>
-            <div>
-                Number of Incoming Missiles
-            </div>
-            <div>
-                Must be an integer greater than or equal to 1.
             </div>
         </FormInfo>
     </div>
@@ -295,7 +270,6 @@ const GroundBurst = ({ index, layerData }) =>
         <Yield index={index} missileYield={layerData.yield} />
         <Reliability index={index} reliability={layerData.reliability} />
         <CEP index={index} cep={layerData.cep} />
-        <NumberOfIncomingMissiles index={index} number={layerData.number} />
     </div>
 
 
@@ -305,7 +279,6 @@ const Notional = ({ index, layerData }) =>
         <Range index={index} type="offensive" range={layerData.range} />
         <SSPK index={index} type="offensive" sspk={layerData.sspk} />
         <Reliability index={index} reliability={layerData.reliability} />
-        <NumberOfIncomingMissiles index={index} number={layerData.number} />
     </div>
 
 
