@@ -295,8 +295,8 @@ const PageControl = ({ map, layers, active, target, modelIndex }) =>
             {active.length
                 ? <ProbabilityChart
                     p0={P0[modelIndex].model(
-                        layers.filter((e, i) => active.includes(i)).filter((e, i) => e.type === 'offensive'),
-                        layers.filter((e, i) => active.includes(i)).filter((e, i) => e.type === 'defensive'),
+                        layers.filter((e, i) => active.includes(i)).filter((e) => e.type === 'offensive'),
+                        layers.filter((e, i) => active.includes(i)).filter((e) => e.type === 'defensive'),
                         target
                     )}
                     maxWarheads={20}

@@ -83,7 +83,7 @@ const Layer = ({ index, type, name, children }) =>
 
 
 // A range field
-const Range = ({ index, type, range }) =>
+const Range = ({ index, range }) =>
     <div className="range">
         <label>
             Range (m):
@@ -108,7 +108,7 @@ const Range = ({ index, type, range }) =>
 
 
 // An SSPK field
-const SSPK = ({ index, type, sspk }) =>
+const SSPK = ({ index, sspk }) =>
     <div className="sspk">
         <label>
             SSPK:
