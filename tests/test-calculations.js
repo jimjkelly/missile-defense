@@ -13,7 +13,7 @@ test('tests notional offensive layer', () => {
 
     expect(calculations.OffensiveLayer(
         {
-            type: 'notional',
+            offensiveType: 'notional',
             sspk: 0.9,
             reliability: 0.9
         },
@@ -22,7 +22,7 @@ test('tests notional offensive layer', () => {
 
     expect(calculations.OffensiveLayer(
         {
-            type: 'notional',
+            offensiveType: 'notional',
             sspk: 0.19019,
             reliability: 0.8
         },
@@ -35,7 +35,7 @@ test('tests ground burst offensive layer', () => {
 
     expect(calculations.OffensiveLayer(
         {
-            type: 'ground-burst',
+            offensiveType: 'ground-burst',
             yield: 750,
             reliability: 0.75,
             cep: 900
@@ -56,14 +56,14 @@ test('offensive layer equivalency', () => {
 
     expect(calculations.OffensiveLayer(
         {
-            type: 'notional',
+            offensiveType: 'notional',
             sspk: 0.19019,
             reliability: 0.8
         },
         700
     )).toBeCloseTo(calculations.OffensiveLayer(
         {
-            type: 'ground-burst',
+            offensiveType: 'ground-burst',
             yield: 750,
             reliability: 0.8,
             cep: 900
@@ -100,7 +100,7 @@ test('tests pw', () => {
             number: 1,
             reliability: 0.8,
             sspk: 0.19019,
-            type: 'notional'
+            offensiveType: 'notional'
         }),
         [calculations.DefensiveLayer(
             {
@@ -121,7 +121,7 @@ test('test p0 with notional offense', () => {
                 number: 2,
                 reliability: 0.9,
                 sspk: 0.9,
-                type: 'notional'
+                offensiveType: 'notional'
             }
         ],
         [
@@ -148,7 +148,7 @@ test('test p0 with ground burst offense', () => {
                 cep: 100,
                 reliability: 0.9,
                 yield: 1000,
-                type: 'ground-burst'
+                offensiveType: 'ground-burst'
             }
         ],
         [
@@ -174,7 +174,7 @@ test('p0 over multiple warheads', () => {
                 number: 1,
                 reliability: 0.8,
                 sspk: 0.19019,
-                type: 'notional'
+                offensiveType: 'notional'
             }
         ],
         [
@@ -195,13 +195,13 @@ test('p0 over multiple warheads', () => {
                 number: 1,
                 reliability: 0.8,
                 sspk: 0.19019,
-                type: 'notional'
+                offensiveType: 'notional'
             },
             {
                 number: 1,
                 reliability: 0.8,
                 sspk: 0.19019,
-                type: 'notional'
+                offensiveType: 'notional'
             }
         ],
         [
@@ -222,19 +222,19 @@ test('p0 over multiple warheads', () => {
                 number: 1,
                 reliability: 0.8,
                 sspk: 0.19019,
-                type: 'notional'
+                offensiveType: 'notional'
             },
             {
                 number: 1,
                 reliability: 0.8,
                 sspk: 0.19019,
-                type: 'notional'
+                offensiveType: 'notional'
             },
             {
                 number: 1,
                 reliability: 0.8,
                 sspk: 0.19019,
-                type: 'notional'
+                offensiveType: 'notional'
             }
         ],
         [
@@ -255,25 +255,25 @@ test('p0 over multiple warheads', () => {
                 number: 1,
                 reliability: 0.8,
                 sspk: 0.19019,
-                type: 'notional'
+                offensiveType: 'notional'
             },
             {
                 number: 1,
                 reliability: 0.8,
                 sspk: 0.19019,
-                type: 'notional'
+                offensiveType: 'notional'
             },
             {
                 number: 1,
                 reliability: 0.8,
                 sspk: 0.19019,
-                type: 'notional'
+                offensiveType: 'notional'
             },
             {
                 number: 1,
                 reliability: 0.8,
                 sspk: 0.19019,
-                type: 'notional'
+                offensiveType: 'notional'
             }
         ],
         [
