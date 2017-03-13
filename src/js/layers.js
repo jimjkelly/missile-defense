@@ -6,7 +6,6 @@ defensive layers.
 
 */
 
-import _ from 'lodash';
 import React from 'react';
 import { callAction, reducerMap } from './store';
 import { OffensiveLayer as OffensiveCalc, DefensiveLayer as DefensiveCalc } from './calculations';
@@ -20,8 +19,8 @@ import { round } from './utils';
 // modified in the store.
 Object.assign(reducerMap, {
     UPDATE_TARGET: (state, action) => {
-        return _.merge(state, {
-            target: action.data
+        return Object.assign({}, state, {
+            target: Object.assign({}, state.target, action.data)
         });
     },
     UPDATE_LAYER: (state, action) => {
@@ -367,12 +366,13 @@ const DefensiveLayer = ({ index, type, layerData }) =>
 
 
 // Target configuraiton widget
-const Target = ({ target }) =>
-    <div className="target">
+const Target = ({ target }) => {
+    const { latitude, longitude, hardness } = target;
+    return <div className="target">
         <label>Target Information:</label>
         <div>
             Latitude: <EditableText
-                text={target.latitude}
+                text={latitude}
                 action={(element) => callAction(
                     'UPDATE_TARGET',
                     { latitude: Number(element.value) }
@@ -382,7 +382,7 @@ const Target = ({ target }) =>
         </div>
         <div>
             Longitude: <EditableText
-                text={target.longitude}
+                text={longitude}
                 action={(element) => callAction(
                     'UPDATE_TARGET',
                     { longitude: Number(element.value) }
@@ -392,7 +392,7 @@ const Target = ({ target }) =>
         </div>
         <div>
             Hardness (PSI): <EditableText
-                text={target.hardness}
+                text={hardness}
                 action={(element) => callAction(
                     'UPDATE_TARGET',
                     { hardness: element.value }
@@ -409,7 +409,7 @@ const Target = ({ target }) =>
             </FormInfo>
         </div>
     </div>
-
+}
 
 // This allows other parts of the application to access these functions
 export { OffensiveLayer, DefensiveLayer, Target, Probability };

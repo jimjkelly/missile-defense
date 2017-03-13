@@ -277,6 +277,19 @@ class MapControl extends Component {
         window.removeEventListener('resize', this._resize)
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (this.props.target.latitude !== nextProps.target.latitude || this.props.target.longitude !== nextProps.target.longitude) {
+            this.setState(state => ({
+                ...state,
+                viewport: {
+                    ...state.viewport,
+                    latitude: nextProps.target.latitude,
+                    longitude: nextProps.target.longitude
+                }
+            }));
+        }
+    }
+
     render() {
         const childrenDragging = (value) => this.setState({childrendragging:value});
         const {project, unproject} = ViewportMercator(this.state.viewport);
