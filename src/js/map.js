@@ -73,7 +73,7 @@ const layersAtLocation = (x, y) => {
 
 
 const layerProbability = (layer, hardness) =>
-    layer.type === 'offensive'
+    layer.type === 'offensive' && layer.offensiveType
     ? OffensiveLayer(layer, hardness) || undefined
     : layer.type === 'defensive'
     ? DefensiveLayer(layer) || undefined
@@ -89,6 +89,15 @@ class DraggableSVGOverlay extends Component {
             longitude: this.props.longitude,
             latitude: this.props.latitude
         };
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.longitude !== this.state.longitude || nextProps.latitude !== this.state.latitude) {
+            this.setState({
+                latitude: nextProps.latitude,
+                longitude: nextProps.longitude
+            });
+        }
     }
 
     @autobind
@@ -171,7 +180,7 @@ class DraggableSVGOverlay extends Component {
 }
 
 
-const MapLayer = ({ index, type, mapProps, latitude, longitude, range, project, unproject, color, probability }) =>
+const MapLayer = ({ index, name, type, mapProps, latitude, longitude, range, project, unproject, color, probability }) =>
     <DraggableSVGOverlay {...mapProps} latitude={latitude} longitude={longitude} unproject={unproject} redraw={opt => {
         const radius = radiusAtZoom(range ? range : 1, mapProps.zoom),
               fillColor = colorAtProbability(color, probability || 0),
@@ -188,7 +197,9 @@ const MapLayer = ({ index, type, mapProps, latitude, longitude, range, project, 
                 style={ {fill: fillColor, stroke: fillColor} }
                 transform={transform([{translate: project([opt.longitude, opt.latitude])}])}
                 r={radius}
-            />
+            >
+                <title>{name}</title>
+            </circle>
             <circle
                 style={ {
                     strokeWidth,
@@ -235,14 +246,14 @@ class SortableLayers extends Component {
     updateState(data) {
         if (data.items && !_.isEqual(data.items, this.props.layers) && this.props.onChange) {
             this.props.onChange(data.items)
+        } else {
+            this.setState(data);
         }
-
-        this.setState(data);
     }
 
     componentWillReceiveProps(nextProps) {
         if (!_.isEqual(nextProps.layers, this.state.items)) {
-            this.setState({ items: nextProps.items });
+            this.setState({ items: nextProps.layers });
         }
     }
 
@@ -260,9 +271,18 @@ class SortableLayers extends Component {
                     draggingIndex={this.state.draggingIndex}
                 >
                     <span>
-                        {i+1}
-                        <span style={{ padding: '0 5px', backgroundColor: colorAtProbability(colors[layer.type], layerProbability(layer, hardness) || 0) }} >&nbsp;</span>
-                        {layer.name}
+                        <span className='sort'>
+                          <i className='fa fa-bars'></i>
+                        </span>
+                        <span>
+                            {i+1}
+                        </span>
+                        <span className='list-item-color' style={{ backgroundColor: colorAtProbability(colors[layer.type], layerProbability(layer, hardness) || 0) }} >
+                            &nbsp;
+                        </span>
+                        <span>
+                            {layer.name}
+                        </span>
                     </span>
                 </SortableLayer>
             )}
@@ -384,6 +404,7 @@ class MapControl extends Component {
                     <MapLayer
                         key={index}
                         index={index}
+                        name={layer.name}
                         type={layer.type}
                         color={colors[layer.type]}
                         range={layer.range}

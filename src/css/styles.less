@@ -77,10 +77,30 @@ h1 {
 
 .layers-order {
   position: absolute;
-  background-color: #fff;
   top: 10px;
   right: 10px;
   z-index: 99;
+}
+
+.layers-order > .list-item {
+  padding: .25rem;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.layers-order > .list-item > span > .list-item-color {
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  padding: 0;
+}
+
+.layers-order > .list-item > span > .sort {
+  padding-right: 0;
+}
+
+.layers-order > .list-item > span > span {
+  padding-left: .5rem;
+  padding-right: .5rem;
 }
 
 svg > text {
