@@ -105,7 +105,7 @@ const Range = ({ index, range }) =>
         </label>
         <FormInfo>
             <div>
-                Range
+                Range of missile system in meters
             </div>
             <div>
                 Must be an integer greater than or equal to 1.
@@ -130,8 +130,9 @@ const SSPK = ({ index, sspk }) =>
         </label>
         <FormInfo>
             <div>
-                Single Shot Probability of Kill<br />
-                for one interceptor at Layer L.
+                Single Shot Probability of Kill,<br />
+                the probability that one unit<br />
+                in this layer kills its target
             </div>
             <div>
                 Must be a value between 0 and 1, inclusive.
@@ -156,7 +157,7 @@ const Interceptors = ({ index, interceptors }) =>
         </label>
         <FormInfo>
             <div>
-                Number of Interceptors in Layer per Target
+                Number of Interceptors Committed per Incoming Target
             </div>
             <div>
                 Must be an integer greater than or equal to 1.
@@ -181,7 +182,8 @@ const TrackingProbability = ({ index, tracking }) =>
         </label>
         <FormInfo>
             <div>
-                Probability of No Common Mode Failure
+                Probability of Tracking Incoming Target <br />
+                and No Common Mode Failure. 
             </div>
             <div>
                 Must be a value between 0 and 1, inclusive.
@@ -206,7 +208,8 @@ const Reliability = ({ index, reliability }) =>
         </label>
         <FormInfo>
             <div>
-                Reliability of Attacking Warhead
+                Reliability of System <br />
+                Probability that System Works
             </div>
             <div>
                 Must be a value between 0 and 1, inclusive.
@@ -381,7 +384,8 @@ const Target = ({ target }) => {
             />
             <FormInfo>
                 <div>
-                    Hardness of Buildings in Target Area in PSI
+                    Hardness of Desired Target Area in PSI. <br />
+                    Amount of Pressure Required to Destroy Target
                 </div>
                 <div>
                     Must be an integer greater than or equal to 1.
