@@ -279,7 +279,7 @@ const ProbabilityChart = ({ p0, maxWarheads }) =>
 // calculations.
 const PageControl = ({ map, layers, active, target, modelIndex }) =>
     <div className="page">
-        <MapControl map={map} layers={layers} target={target} />
+        <MapControl map={map} layers={layers} target={target} modelIndex={modelIndex} />
         <div className="data-display">
             <Controls layers={layers} target={target} />
             <div className="bottom-controls">
