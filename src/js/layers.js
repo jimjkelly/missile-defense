@@ -384,7 +384,8 @@ const Target = ({ target }) => {
             />
             <FormInfo>
                 <div>
-                    Hardness of Buildings in Target Area in PSI
+                    Hardness of Desired Target Area in PSI. <br />
+                    Amount of Pressure Required to Destroy Target
                 </div>
                 <div>
                     Must be an integer greater than or equal to 1.
