@@ -5,7 +5,6 @@ mapping.
 
 */
 
-import _ from 'lodash';
 import MapGL from 'react-map-gl';
 import window from 'global/window';
 import pkg from '../../package.json';
@@ -238,33 +237,25 @@ class SortableLayers extends Component {
 
         this.updateState = this.updateState.bind(this);
         this.state = {
-            draggingIndex: null,
-            items: props.layers.slice()
+            draggingIndex: null
         }
     }
 
     updateState(data) {
-        if (data.items && !_.isEqual(data.items, this.props.layers) && this.props.onChange) {
+        if (data.items && this.props.onChange) {
             this.props.onChange(data.items)
-        } else {
-            this.setState(data);
         }
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if (!_.isEqual(nextProps.layers, this.state.items)) {
-            this.setState({ items: nextProps.layers });
-        }
+        this.setState(data);
     }
 
     render() {
         const { colors, hardness } = this.props;
 
         return <div className="layers-order" onMouseDown={(e) => e.stopPropagation()}>
-            {this.state.items.map((layer, i) =>
+            {this.props.layers.map((layer, i) =>
                 <SortableLayer
                     key={i}
-                    items={this.state.items}
+                    items={this.props.layers}
                     sortId={i}
                     outline="list"
                     updateState={this.updateState}
