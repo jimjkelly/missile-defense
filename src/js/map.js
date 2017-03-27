@@ -79,13 +79,36 @@ const layerProbability = (layer, hardness) =>
     : undefined;
 
 
+const MouseOverPValues = (props) =>
+    <svg
+        width={props.width}
+        height={props.height}
+        style={{
+            pointerEvents: 'none',
+            position: 'absolute',
+            left: 0,
+            top: 0
+        }}
+    >
+        <g transform={transform([{translate: props.location}])}>
+            <rect rx="5" width={`${props.activeLayers.map(i => props.layers[i].name).join(', ').length + (props.layers.length > 1 ? 11 : 0)}em`} height="3em" fill="white"></rect>
+            <text>
+                <tspan className="layer-hover-probability" x="10" dy="1.2em">P({props.name}{props.type === 'offensive' ? ', unopposed' : null}): {round(props.probability)}</tspan>
+                <tspan className="layer-hover-probability" x="10" dy="1.2em">P(0, [{props.activeLayers.map(i => props.layers[i].name).join(', ')}]): {round(P0[props.modelIndex].model(
+                    props.layers.filter((e, i) => props.activeLayers.includes(i)).filter((e) => e.type === 'offensive'),
+                    props.layers.filter((e, i) => props.activeLayers.includes(i)).filter((e) => e.type === 'defensive'),
+                    props.target
+                ))}</tspan>
+            </text>
+        </g>
+    </svg>
+
 // This provides the draggable circles
 class MapLayer extends Component {
     constructor(props) {
         super(props);
         this.state = {
             dragging: false,
-            displayPFor: null,
             longitude: this.props.longitude,
             latitude: this.props.latitude
         };
@@ -156,24 +179,30 @@ class MapLayer extends Component {
 
     @autobind
     onMouseMove(event) {
-        event.stopPropagation();
-        this.setState({
-            displayPFor: layersAtLocation(event.clientX, event.clientY)
-        })
+        if (this.props.onMouseMove) {
+            event.stopPropagation();
+            this.props.onMouseMove({
+                ...this.props,
+                activeLayers: layersAtLocation(event.clientX, event.clientY),
+                location: [
+                    event.clientX,
+                    event.clientY
+                ]
+            });
+        }
     }
 
     @autobind
     onMouseLeave(event) {
-        event.stopPropagation();
-
-        this.setState({
-            displayPFor: null
-        })
+        if (this.props.onMouseMove) {
+            event.stopPropagation();
+            this.props.onMouseMove(null);
+        }
     }
 
     render() {
         const {longitude, latitude} = this.state,
-              {index, name, type, width, height, zoom, range, color, probability, project, layers, target, modelIndex, isDragging} = this.props,
+              {index, type, width, height, zoom, range, color, probability, project, isDragging} = this.props,
               radius = radiusAtZoom(range ? range : 1, zoom),
               fillColor = colorAtProbability(color, probability || 0),
               strokeSpacing = 4,
@@ -216,20 +245,6 @@ class MapLayer extends Component {
                         ((2*radius) + (2*strokeWidth) + strokeSpacing)/2
                     )}
                 />
-                { this.state.displayPFor
-                    ? <g transform={transform([{translate: project([longitude, latitude])}])}>
-                        <rect rx="5" width={`${this.state.displayPFor.map(i => layers[i].name).join(', ').length + (layers.length > 1 ? 11 : 0)}em`} height="3em" fill="white"></rect>
-                        <text>
-                            <tspan className="layer-hover-probability" x="10" dy="1.2em">P({name}{type === 'offensive' ? ', unopposed' : null}): {round(probability)}</tspan>
-                            <tspan className="layer-hover-probability" x="10" dy="1.2em">P(0, [{this.state.displayPFor.map(i => layers[i].name).join(', ')}]): {round(P0[modelIndex].model(
-                                layers.filter((e, i) => this.state.displayPFor.includes(i)).filter((e) => e.type === 'offensive'),
-                                layers.filter((e, i) => this.state.displayPFor.includes(i)).filter((e) => e.type === 'defensive'),
-                                target
-                            ))}</tspan>
-                        </text>
-                    </g>
-                    : null
-                }
             </g>
         </svg>
     }
@@ -327,6 +342,7 @@ class MapControl extends Component {
 
         this.state = {
             childrendragging: false,
+            displayPFor: null,
             viewport: {
                 zoom: props.map.zoom,
                 latitude: props.target.latitude,
@@ -431,6 +447,7 @@ class MapControl extends Component {
                         latitude={layer.latitude || this.props.target.latitude}
                         longitude={layer.longitude || this.props.target.longitude}
                         probability={layerProbability(layer, this.props.target.hardness)}
+                        onMouseMove={(d) => this.setState({displayPFor: d})}
                         onDragStart={() => childrenDragging(true)}
                         onDragEnd={(e, { latitude, longitude }) => {
                             childrenDragging(false);
@@ -442,6 +459,12 @@ class MapControl extends Component {
                     />
                 )}
             </MapGL>
+            { this.state.displayPFor
+                ? <MouseOverPValues
+                    {...this.state.displayPFor}
+                />
+                : null
+            }
         </div>
     }
 }
