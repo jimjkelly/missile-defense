@@ -14,8 +14,8 @@ import { sortable } from 'react-sortable';
 import autobind from 'autobind-decorator';
 import ViewportMercator from 'viewport-mercator-project';
 import transform from 'svg-transform';
-import { OffensiveLayer, DefensiveLayer } from './calculations';
-import { alphaify } from './utils';
+import { OffensiveLayer, DefensiveLayer, P0 } from './calculations';
+import { alphaify, round } from './utils';
 
 
 Object.assign(reducerMap, {
@@ -67,7 +67,7 @@ const layersAtLocation = (x, y) => {
         }
     }
 
-    callAction('UPDATE_ACTIVE_LAYERS', layers);
+    return layers;
 }
 
 
@@ -80,11 +80,12 @@ const layerProbability = (layer, hardness) =>
 
 
 // This provides the draggable circles
-class DraggableSVGOverlay extends Component {
+class MapLayer extends Component {
     constructor(props) {
         super(props);
         this.state = {
             dragging: false,
+            displayPFor: null,
             longitude: this.props.longitude,
             latitude: this.props.latitude
         };
@@ -153,9 +154,30 @@ class DraggableSVGOverlay extends Component {
         }
     }
 
+    @autobind
+    onMouseMove(event) {
+        event.stopPropagation();
+        this.setState({
+            displayPFor: layersAtLocation(event.clientX, event.clientY)
+        })
+    }
+
+    @autobind
+    onMouseLeave(event) {
+        event.stopPropagation();
+
+        this.setState({
+            displayPFor: null
+        })
+    }
+
     render() {
         const {longitude, latitude} = this.state,
-              {width, height, zoom, isDragging} = this.props,
+              {index, name, type, width, height, zoom, range, color, probability, project, layers, target, modelIndex, isDragging} = this.props,
+              radius = radiusAtZoom(range ? range : 1, zoom),
+              fillColor = colorAtProbability(color, probability || 0),
+              strokeSpacing = 4,
+              strokeWidth = 5,
               style = {
                 ...this.props.style,
                 cursor: isDragging ? 'grabbing' : 'grab',
@@ -165,55 +187,53 @@ class DraggableSVGOverlay extends Component {
                 top: 0
               };
 
-        return <svg
-            ref="overlay"
-            style={style}
-            width={this.props.width}
-            height={this.props.height}
-        >
-            <g onMouseDown={this.onDragStart}>
-                { this.props.redraw({width, height, zoom, longitude, latitude, isDragging}) }
+        return <svg ref="overlay" style={style} width={width} height={height}>
+            <g
+                style={{ pointerEvents: 'all', cursor: 'pointer' }}
+                onMouseDown={this.onDragStart}
+                onMouseMove={this.onMouseMove}
+                onMouseLeave={this.onMouseLeave}
+                onClick={(e) => callAction('UPDATE_ACTIVE_LAYERS', layersAtLocation(e.clientX, e.clientY))}
+            >
+                <circle
+                    data-index={index}
+                    data-layer-type={type}
+                    style={ {fill: fillColor, stroke: fillColor} }
+                    transform={transform([{translate: project([longitude, latitude])}])}
+                    r={radius}
+                >
+                </circle>
+                <circle
+                    style={ {
+                        strokeWidth,
+                        strokeDasharray: dashLayer(index),
+                        pointerEvents: 'none',
+                        stroke: fillColor,
+                        fill: 'none'
+                    }}
+                    transform={ transform([{translate: project([longitude, latitude])}]) }
+                    r={(
+                        ((2*radius) + (2*strokeWidth) + strokeSpacing)/2
+                    )}
+                />
+                { this.state.displayPFor
+                    ? <g transform={transform([{translate: project([longitude, latitude])}])}>
+                        <rect rx="5" width={`${this.state.displayPFor.map(i => layers[i].name).join(', ').length + (layers.length > 1 ? 11 : 0)}em`} height="3em" fill="white"></rect>
+                        <text>
+                            <tspan className="layer-hover-probability" x="10" dy="1.2em">P({name}{type === 'offensive' ? ', unopposed' : null}): {round(probability)}</tspan>
+                            <tspan className="layer-hover-probability" x="10" dy="1.2em">P(0, [{this.state.displayPFor.map(i => layers[i].name).join(', ')}]): {round(P0[modelIndex].model(
+                                layers.filter((e, i) => this.state.displayPFor.includes(i)).filter((e) => e.type === 'offensive'),
+                                layers.filter((e, i) => this.state.displayPFor.includes(i)).filter((e) => e.type === 'defensive'),
+                                target
+                            ))}</tspan>
+                        </text>
+                    </g>
+                    : null
+                }
             </g>
         </svg>
     }
 }
-
-
-const MapLayer = ({ index, name, type, mapProps, latitude, longitude, range, project, unproject, color, probability }) =>
-    <DraggableSVGOverlay {...mapProps} latitude={latitude} longitude={longitude} unproject={unproject} redraw={opt => {
-        const radius = radiusAtZoom(range ? range : 1, mapProps.zoom),
-              fillColor = colorAtProbability(color, probability || 0),
-              strokeWidth = 5,
-              strokeSpacing = 4;
-
-        return <g onClick={(e) => layersAtLocation(e.clientX, e.clientY)} style={{
-            pointerEvents: 'all',
-            cursor: 'pointer'
-        }}>
-            <circle
-                data-index={index}
-                data-layer-type={type}
-                style={ {fill: fillColor, stroke: fillColor} }
-                transform={transform([{translate: project([opt.longitude, opt.latitude])}])}
-                r={radius}
-            >
-                <title>{name}</title>
-            </circle>
-            <circle
-                style={ {
-                    strokeWidth,
-                    strokeDasharray: dashLayer(index),
-                    pointerEvents: 'none',
-                    stroke: fillColor,
-                    fill: 'none'
-                }}
-                transform={ transform([{translate: project([opt.longitude, opt.latitude])}]) }
-                r={(
-                    ((2*radius) + (2*strokeWidth) + strokeSpacing)/2
-                )}
-            />
-        </g>
-    }} />
 
 
 const SortableLayer = sortable(React.createClass({
@@ -384,7 +404,7 @@ class MapControl extends Component {
             ...this.state.viewport,
             mapboxApiAccessToken: pkg.maptoken,
             isDragging: this.state.childrendragging,
-            onClick: () => layersAtLocation()
+            onClick: () => callAction('UPDATE_ACTIVE_LAYERS', layersAtLocation())
         };
 
         return <div className="map">
@@ -397,23 +417,27 @@ class MapControl extends Component {
                         index={index}
                         name={layer.name}
                         type={layer.type}
+                        width={mapProps.width}
+                        height={mapProps.height}
                         color={colors[layer.type]}
+                        zoom={mapProps.zoom}
                         range={layer.range}
                         project={project}
                         unproject={unproject}
+                        layers={this.props.layers}
+                        target={this.props.target}
+                        isDragging={mapProps.isDragging}
+                        modelIndex={this.props.modelIndex}
                         latitude={layer.latitude || this.props.target.latitude}
                         longitude={layer.longitude || this.props.target.longitude}
                         probability={layerProbability(layer, this.props.target.hardness)}
-                        mapProps={{
-                            ...mapProps,
-                            onDragStart: () => childrenDragging(true),
-                            onDragEnd: (e, { latitude, longitude }) => {
-                                childrenDragging(false);
-                                callAction('UPDATE_LAYER', {
-                                    layer: { latitude, longitude },
-                                    index
-                                })
-                            }
+                        onDragStart={() => childrenDragging(true)}
+                        onDragEnd={(e, { latitude, longitude }) => {
+                            childrenDragging(false);
+                            callAction('UPDATE_LAYER', {
+                                layer: { latitude, longitude },
+                                index
+                            })
                         }}
                     />
                 )}
