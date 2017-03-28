@@ -158,13 +158,14 @@ class ShareLink extends React.Component {
 }
 
 // This is the button a user clicks to add a new layer
-const LayerButton = ({ type, action, children }) =>
+const LayerButton = ({ type, children, data }) =>
     <div className="layer-button" onClick={() =>
         callAction(
-            `${action}_LAYER`,
+            `ADD_LAYER`,
             {
                 type: type,
-                name: `New ${type} layer`
+                name: `New ${type} layer`,
+                ...data
             }
         )}
     >
@@ -173,10 +174,10 @@ const LayerButton = ({ type, action, children }) =>
 
 
 // Layer control with count of layers and button to add
-const LayerSlider = ({ type, numLayers }) =>
+const LayerSlider = ({ type, numLayers, data }) =>
     <div className="layer-slider">
         {`${numLayers} ${capitalize(type)} ${numLayers === 1 ? "Layer" : "Layers"}`}
-        <LayerButton type={type} action="ADD">
+        <LayerButton type={type} data={data}>
             <i className="fa fa-plus"></i>
         </LayerButton>
     </div>
@@ -185,7 +186,7 @@ const LayerSlider = ({ type, numLayers }) =>
 // Control to add layers as well as the layers themselves
 const LayerControl = ({ type, layers, Layer, target }) =>
     <div className={`layer-control ${type}`}>
-        <LayerSlider type={type} numLayers={layers.filter(e => e.type === type).length} />
+        <LayerSlider type={type} numLayers={layers.filter(e => e.type === type).length} data={{ latitude: target.latitude, longitude: target.longitude }} />
         {layers.map((layer, index) =>
             layer.type === type
                 ? <Layer key={index} index={index} type={type} layerData={layer} target={target} />
@@ -227,6 +228,7 @@ const Controls = ({ layers, target }) =>
             type="defensive"
             Layer={DefensiveLayer}
             layers={layers}
+            target={target}
         />
     </div>
 
