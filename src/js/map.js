@@ -79,8 +79,27 @@ const layerProbability = (layer, hardness) =>
     : undefined;
 
 
-const MouseOverPValues = (props) =>
-    <svg
+const getTextWidth = (text)  => {
+    return document
+        .createElement('canvas')
+        .getContext('2d')
+        .measureText(text)
+        .width;
+}
+
+
+
+const MouseOverPValues = (props) => {
+    const line1 = `P(${props.name}${props.type === 'offensive' ? ', unopposed' : ''}): ${round(props.probability)}`,
+          line2 = `P(0, [${props.activeLayers.map(i => props.layers[i].name).join(', ')}]): ${round(P0[props.modelIndex].model(
+                    props.layers.filter((e, i) => props.activeLayers.includes(i)).filter((e) => e.type === 'offensive'),
+                    props.layers.filter((e, i) => props.activeLayers.includes(i)).filter((e) => e.type === 'defensive'),
+                    props.target
+                ))}`,
+          line1Length = getTextWidth(line1),
+          line2Length = getTextWidth(line2);
+
+    return <svg
         width={props.width}
         height={props.height}
         style={{
@@ -91,17 +110,14 @@ const MouseOverPValues = (props) =>
         }}
     >
         <g transform={transform([{translate: props.location}])}>
-            <rect rx="5" width={`${props.activeLayers.map(i => props.layers[i].name).join(', ').length + (props.layers.length > 1 ? 11 : 0)}em`} height="3em" fill="white"></rect>
+            <rect rx="5" width={`${round(line1Length > line2Length ? line1Length : line2Length, 0) * 2}`} height="3em" fill="white"></rect>
             <text>
-                <tspan className="layer-hover-probability" x="10" dy="1.2em">P({props.name}{props.type === 'offensive' ? ', unopposed' : null}): {round(props.probability)}</tspan>
-                <tspan className="layer-hover-probability" x="10" dy="1.2em">P(0, [{props.activeLayers.map(i => props.layers[i].name).join(', ')}]): {round(P0[props.modelIndex].model(
-                    props.layers.filter((e, i) => props.activeLayers.includes(i)).filter((e) => e.type === 'offensive'),
-                    props.layers.filter((e, i) => props.activeLayers.includes(i)).filter((e) => e.type === 'defensive'),
-                    props.target
-                ))}</tspan>
+                <tspan className="layer-hover-probability" x="15" dy="1.2em">{line1}</tspan>
+                <tspan className="layer-hover-probability" x="15" dy="1.2em">{line2}</tspan>
             </text>
         </g>
     </svg>
+}
 
 // This provides the draggable circles
 class MapLayer extends Component {
