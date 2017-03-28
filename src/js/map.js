@@ -150,16 +150,19 @@ class MapLayer extends Component {
     @autobind
     onDragStart(event) {
         event.stopPropagation();
-        document.addEventListener('mousemove', this.onDrag, false);
-        document.addEventListener('mouseup', this.onDragEnd, false);
-        if (this.props.onDragStart) {
-            this.props.onDragStart(event, {
-                latitude: this.state.latitude,
-                longitude: this.state.longitude
-            });
-        }
 
-        this.setState({dragging: true});
+        if (!this.props.locked) {
+            document.addEventListener('mousemove', this.onDrag, false);
+            document.addEventListener('mouseup', this.onDragEnd, false);
+            if (this.props.onDragStart) {
+                this.props.onDragStart(event, {
+                    latitude: this.state.latitude,
+                    longitude: this.state.longitude
+                });
+            }
+
+            this.setState({dragging: true});
+        }
     }
 
     @autobind
@@ -303,11 +306,11 @@ class SortableLayers extends Component {
         const { colors, hardness } = this.props;
 
         return <div className="layers-order" onMouseDown={(e) => e.stopPropagation()}>
-            {this.props.layers.map((layer, i) =>
+            {this.props.layers.map((layer, index) =>
                 <SortableLayer
-                    key={i}
+                    key={index}
                     items={this.props.layers}
-                    sortId={i}
+                    sortId={index}
                     outline="list"
                     updateState={this.updateState}
                     draggingIndex={this.state.draggingIndex}
@@ -317,7 +320,7 @@ class SortableLayers extends Component {
                           <i className='fa fa-bars'></i>
                         </span>
                         <span>
-                            {i+1}
+                            {index+1}
                         </span>
                         <span className='list-item-color' style={{ backgroundColor: colorAtProbability(colors[layer.type], layerProbability(layer, hardness) || 0) }} >
                             &nbsp;
@@ -325,6 +328,18 @@ class SortableLayers extends Component {
                         <span>
                             {layer.name}
                         </span>
+                        <i
+                            className={`fa fa-${layer.locked ? '' : 'un'}lock`} onClick={() =>
+                                callAction('UPDATE_LAYER', {
+                                    layer: { locked: !layer.locked },
+                                    index
+                                })
+                            }
+                            title={layer.locked
+                                ? 'unlock layer on map'
+                                : 'lock layer on map'
+                            }
+                        ></i>
                     </span>
                 </SortableLayer>
             )}
@@ -449,6 +464,7 @@ class MapControl extends Component {
                         index={index}
                         name={layer.name}
                         type={layer.type}
+                        locked={layer.locked}
                         width={mapProps.width}
                         height={mapProps.height}
                         color={colors[layer.type]}
