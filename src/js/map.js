@@ -329,7 +329,7 @@ class SortableLayers extends Component {
                             {layer.name}
                         </span>
                         <i
-                            className={`fa fa-${layer.locked ? '' : 'un'}lock`} onClick={() =>
+                            className={`fa lock-layer fa-${layer.locked ? '' : 'un'}lock`} onClick={() =>
                                 callAction('UPDATE_LAYER', {
                                     layer: { locked: !layer.locked },
                                     index
