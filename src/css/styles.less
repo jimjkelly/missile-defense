@@ -80,25 +80,32 @@ h1 {
   top: 10px;
   right: 10px;
   z-index: 99;
-}
-
-.layers-order > .list-item {
-  padding: .25rem;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
   background-color: rgba(255, 255, 255, 0.5);
 }
 
-.layers-order > .list-item > span > .list-item-color {
+.layers-order > .layers-order-layers {
+    display: inline-block;
+}
+
+.layers-order .list-item {
+  padding: .25rem;
+}
+
+.layers-order .list-item > span > .list-item-color {
   display: inline-block;
   height: 1rem;
   width: 1rem;
   padding: 0;
 }
 
-.layers-order > .list-item > span > .sort {
+.layers-order .list-item > span > .sort {
   padding-right: 0;
 }
 
-.layers-order > .list-item > span > span {
+.layers-order .list-item > span > span {
   padding-left: .5rem;
   padding-right: .5rem;
 }
@@ -111,6 +118,6 @@ svg > text {
   display: block;
 }
 
-.lock-layer {
+.fa {
   cursor: pointer;
 }

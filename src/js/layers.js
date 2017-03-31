@@ -36,6 +36,13 @@ Object.assign(reducerMap, {
             ]
         });
     },
+    UPDATE_ALL_LAYERS: (state, action) => {
+        return Object.assign({}, state, {
+            layers: state.layers.map(l =>
+                Object.assign({}, l, action.data)
+            )
+        })
+    },
     ADD_LAYER: (state, action) => {
         return Object.assign({}, state, {
             layers: [
@@ -183,7 +190,7 @@ const TrackingProbability = ({ index, tracking }) =>
         <FormInfo>
             <div>
                 Probability of Tracking Incoming Target <br />
-                and No Common Mode Failure. 
+                and No Common Mode Failure.
             </div>
             <div>
                 Must be a value between 0 and 1, inclusive.

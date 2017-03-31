@@ -305,45 +305,60 @@ class SortableLayers extends Component {
     render() {
         const { colors, hardness } = this.props;
 
-        return <div className="layers-order" onMouseDown={(e) => e.stopPropagation()}>
-            {this.props.layers.map((layer, index) =>
-                <SortableLayer
-                    key={index}
-                    items={this.props.layers}
-                    sortId={index}
-                    outline="list"
-                    updateState={this.updateState}
-                    draggingIndex={this.state.draggingIndex}
-                >
-                    <span>
-                        <span className='sort'>
-                          <i className='fa fa-bars'></i>
-                        </span>
-                        <span>
-                            {index+1}
-                        </span>
-                        <span className='list-item-color' style={{ backgroundColor: colorAtProbability(colors[layer.type], layerProbability(layer, hardness) || 0) }} >
-                            &nbsp;
-                        </span>
-                        <span>
-                            {layer.name}
-                        </span>
+        return this.props.layers.length > 0
+            ? <div className="layers-order">
+                <span className="lock-all">
+                    <div>
                         <i
-                            className={`fa lock-layer fa-${layer.locked ? '' : 'un'}lock`} onClick={() =>
-                                callAction('UPDATE_LAYER', {
-                                    layer: { locked: !layer.locked },
-                                    index
-                                })
+                            onClick={() =>
+                                callAction('UPDATE_ALL_LAYERS', { locked: true })
                             }
-                            title={layer.locked
-                                ? 'unlock layer on map'
-                                : 'lock layer on map'
-                            }
+                            className='fa fa-lock fa-2x'
+                            title='lock all layers'
                         ></i>
-                    </span>
-                </SortableLayer>
-            )}
-        </div>
+                    </div>
+                </span>
+                <span className='layers-order-layers' onMouseDown={(e) => e.stopPropagation()}>
+                    {this.props.layers.map((layer, index) =>
+                        <SortableLayer
+                            key={index}
+                            items={this.props.layers}
+                            sortId={index}
+                            outline="list"
+                            updateState={this.updateState}
+                            draggingIndex={this.state.draggingIndex}
+                        >
+                            <span>
+                                <span className='sort'>
+                                  <i className='fa fa-bars'></i>
+                                </span>
+                                <span>
+                                    {index+1}
+                                </span>
+                                <span className='list-item-color' style={{ backgroundColor: colorAtProbability(colors[layer.type], layerProbability(layer, hardness) || 0) }} >
+                                    &nbsp;
+                                </span>
+                                <span>
+                                    {layer.name}
+                                </span>
+                                <i
+                                    className={`fa lock-layer fa-${layer.locked ? '' : 'un'}lock`} onClick={() =>
+                                        callAction('UPDATE_LAYER', {
+                                            layer: { locked: !layer.locked },
+                                            index
+                                        })
+                                    }
+                                    title={layer.locked
+                                        ? 'unlock layer on map'
+                                        : 'lock layer on map'
+                                    }
+                                ></i>
+                            </span>
+                        </SortableLayer>
+                    )}
+                </span>
+            </div>
+        : null;
     }
 }
 
